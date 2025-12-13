@@ -1,7 +1,10 @@
 package ir.developer.goalorpooch_compose.feature.home.data.repository
 
+import ir.developer.goalorpooch_compose.R
 import ir.developer.goalorpooch_compose.core.database.dao.UserDao
 import ir.developer.goalorpooch_compose.feature.home.domain.models.AppItemModel
+import ir.developer.goalorpooch_compose.feature.home.domain.models.GameModel
+import ir.developer.goalorpooch_compose.feature.home.domain.models.OtherModel
 import ir.developer.goalorpooch_compose.feature.home.domain.models.ShopItemModel
 import ir.developer.goalorpooch_compose.feature.home.domain.repository.HomeRepository
 import kotlinx.coroutines.flow.Flow
@@ -40,5 +43,29 @@ class HomeRepositoryImpl @Inject constructor(
         val newCoin = currentCoin + amount
 
         userDao.updateCoin(newCoin = newCoin)
+    }
+
+    override suspend fun gamesItems(): List<GameModel> {
+        return listOf(
+            GameModel(
+                id = 1,
+                name = R.string.manege_goolyapooch,
+                background = R.drawable.background_golyapooch,
+                icon = R.drawable.hand_icon
+            ),
+            GameModel(
+                id = 2,
+                name = R.string.mafia,
+                background = R.drawable.background_mafia,
+                icon = R.drawable.mafia_icon
+            )
+        )
+    }
+
+    override suspend fun othersItems(): List<OtherModel> {
+        return listOf(
+            OtherModel(id = 1, name = R.string.shop, icon = R.drawable.shop_icon),
+            OtherModel(id = 2, name = R.string.apps, icon = R.drawable.apps_icon)
+        )
     }
 }

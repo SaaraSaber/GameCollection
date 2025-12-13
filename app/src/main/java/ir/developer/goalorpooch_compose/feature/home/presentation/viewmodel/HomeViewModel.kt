@@ -20,6 +20,22 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
 
     init {
         observeUserCoin()
+        loadGames()
+        loadOthers()
+    }
+
+    private fun loadOthers() {
+        viewModelScope.launch {
+            val others = repository.othersItems()
+            _state.update { it.copy(otherItems = others) }
+        }
+    }
+
+    private fun loadGames() {
+        viewModelScope.launch {
+            val games = repository.gamesItems()
+            _state.update { it.copy(gameItems = games) }
+        }
     }
 
     private fun observeUserCoin() {
@@ -65,3 +81,35 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
         }
     }
 }
+
+/**
+ * private fun loadData() {
+ *     viewModelScope.launch {
+ *         // شروع لودینگ
+ *         _state.update { it.copy(isLoading = true) }
+ *
+ *         try {
+ *             // استفاده از async برای اینکه هر دو همزمان (موازی) دانلود شوند
+ *             // اگر پشت سر هم بنویسید، دومی منتظر اولی می‌ماند (که کندتر است)
+ *             val gamesDeferred = async { repository.gamesItems() }
+ *             val othersDeferred = async { repository.othersItems() }
+ *
+ *             // منتظر می‌مانیم تا هر دو تمام شوند
+ *             val games = gamesDeferred.await()
+ *             val others = othersDeferred.await()
+ *
+ *             // آپدیت نهایی
+ *             _state.update {
+ *                 it.copy(
+ *                     isLoading = false,
+ *                     gameItems = games,
+ *                     otherItems = others
+ *                 )
+ *             }
+ *         } catch (e: Exception) {
+ *             // هندل کردن خطا (مثلا نمایش اسنک‌بار)
+ *             _state.update { it.copy(isLoading = false) }
+ *         }
+ *     }
+ * }
+ */

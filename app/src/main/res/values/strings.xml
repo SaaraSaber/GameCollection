@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">گل‌یا‌پوچ</string>
+    <string name="manege_goolyapooch">مدیریت گل‌یا‌پوچ</string>
+    <string name="mafia">مدیریت مافیا</string>
+    <string name="apps">برنامه ها</string>
+    <string name="shop">فروشگاه</string>
 </resources>

@@ -4,40 +4,126 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import ir.developer.goalorpooch_compose.R
 import ir.developer.goalorpooch_compose.core.theme.ChampionBlue
 import ir.developer.goalorpooch_compose.core.theme.DarkBackground
+import ir.developer.goalorpooch_compose.core.theme.FontPeydaBold
+import ir.developer.goalorpooch_compose.core.theme.IconSize
+import ir.developer.goalorpooch_compose.core.theme.Leila
 import ir.developer.goalorpooch_compose.core.theme.MiamiBlue
+import ir.developer.goalorpooch_compose.core.theme.NumberFontSize
+import ir.developer.goalorpooch_compose.core.theme.PaddingScreenSize
 import ir.developer.goalorpooch_compose.core.theme.Rose
+import ir.developer.goalorpooch_compose.core.theme.RoundedCornerSize
 import ir.developer.goalorpooch_compose.core.theme.White
+import ir.developer.goalorpooch_compose.feature.home.presentation.HomeIntent
+import ir.developer.goalorpooch_compose.feature.home.presentation.HomeState
+import ir.developer.goalorpooch_compose.feature.home.presentation.viewmodel.HomeViewModel
 import ir.kaaveh.sdpcompose.sdp
 import ir.kaaveh.sdpcompose.ssp
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
 
-    Scaffold() {
+    val state by viewModel.state.collectAsState()
+
+    HomeScreenContent(
+        modifier = modifier,
+        state = state,
+        onIntent = viewModel::homeIntentHandel
+    )
+
+}
+
+@Composable
+fun HomeScreenContent(
+    modifier: Modifier,
+    state: HomeState,
+    onIntent: (HomeIntent) -> Unit
+) {
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = DarkBackground, topBar = {
+            HomeTopBar(
+                modifier = Modifier.statusBarsPadding(),
+                coinBalance = state.coinBalance,
+                onExitClick = { onIntent(HomeIntent.OnExitClicked) },
+                onInfoClick = { onIntent(HomeIntent.OnInfoClicked) }
+            )
+        }
+    ) { paddingValues ->
         Box(
-            modifier = modifier
+            modifier = Modifier
+                .padding(paddingValues)
                 .fillMaxSize()
                 .background(color = DarkBackground)
         ) {
-            HomeTopBar(coinBalance = 0, onExitClick = {}, onInfoClick = {})
+            Column() {
+                HorizontalDivider(
+                    modifier = modifier.padding(
+                        start = PaddingScreenSize(),
+                        end = PaddingScreenSize(),
+                        bottom = PaddingScreenSize()
+                    ), color = Leila
+                )
+
+                LazyColumn(
+                    contentPadding = PaddingValues(8.sdp),
+                    verticalArrangement = Arrangement.spacedBy(8.sdp)
+                ) {
+                    items(state.gameItems) { game ->
+                        GameList(
+                            background = game.background,
+                            nameGame = game.name,
+                            iconGame = game.icon
+                        )
+                    }
+                }
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(8.sdp),
+                    verticalArrangement = Arrangement.spacedBy(8.sdp),
+                    horizontalArrangement = Arrangement.spacedBy(8.sdp),
+                    modifier = modifier.fillMaxWidth()
+                ) {
+                    items(state.otherItems) { other ->
+                        OtherItem(name = other.name, icon = other.icon)
+                    }
+                }
+            }
         }
     }
 
@@ -54,7 +140,7 @@ fun HomeTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(8.sdp),
+            .padding(PaddingScreenSize()),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -64,11 +150,14 @@ fun HomeTopBar(
         ) {
             Box(
                 modifier = modifier
-                    .size(12.sdp)
-                    .background(color = ChampionBlue, shape = RoundedCornerShape(2.sdp)),
+                    .size(24.sdp)
+                    .background(
+                        color = ChampionBlue,
+                        shape = RoundedCornerShape(RoundedCornerSize())
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                IconButton(onClick = {}, modifier = modifier.size(8.sdp)) {
+                IconButton(onClick = { onExitClick() }, modifier = modifier.size(IconSize())) {
                     Icon(
                         painter = painterResource(R.drawable.exit_icon),
                         contentDescription = null,
@@ -79,11 +168,14 @@ fun HomeTopBar(
 
             Box(
                 modifier = modifier
-                    .size(12.sdp)
-                    .background(color = ChampionBlue, shape = RoundedCornerShape(2.sdp)),
+                    .size(24.sdp)
+                    .background(
+                        color = ChampionBlue,
+                        shape = RoundedCornerShape(RoundedCornerSize())
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                IconButton(onClick = {}, modifier = modifier.size(8.sdp)) {
+                IconButton(onClick = { onInfoClick() }, modifier = modifier.size(IconSize())) {
                     Icon(
                         painter = painterResource(R.drawable.info_circle),
                         contentDescription = null,
@@ -94,29 +186,99 @@ fun HomeTopBar(
         }
 
         Box(
-            modifier = modifier.background(
-                color = ChampionBlue,
-                shape = RoundedCornerShape(2.sdp)
-            ).padding(top = 2.sdp, bottom = 2.sdp, start = 6.sdp, end = 6.sdp)
+            modifier = modifier
+                .background(
+                    color = ChampionBlue,
+                    shape = RoundedCornerShape(RoundedCornerSize())
+                )
+                .padding(top = 4.sdp, bottom = 4.sdp, start = 6.sdp, end = 6.sdp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.sdp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Text(text = coinBalance.toString(), color = White, fontSize = NumberFontSize())
                 Image(
                     painter = painterResource(R.drawable.coin_icon),
                     contentDescription = null,
-                    modifier = modifier.size(10.sdp)
+                    modifier = modifier.size(IconSize())
                 )
-                Text(text = "0", color = White, fontSize = 12.ssp)
             }
         }
     }
 }
 
+@Composable
+fun GameList(modifier: Modifier = Modifier, background: Int, nameGame: Int, iconGame: Int) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(120.sdp)
+            .clip(shape = RoundedCornerShape(10.sdp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(background),
+            contentDescription = null,
+            modifier = modifier.matchParentSize(),
+            contentScale = ContentScale.Crop
+        )
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.sdp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Absolute.SpaceBetween
+        ) {
+            Image(
+                painter = painterResource(iconGame),
+                contentDescription = null,
+                modifier = modifier.fillMaxHeight(),
+                alignment = Alignment.BottomCenter,
+                contentScale = ContentScale.Fit
+            )
+            Text(
+                text = stringResource(nameGame),
+                color = White,
+                fontSize = 20.ssp,
+                fontFamily = FontPeydaBold
+            )
+        }
+    }
+}
+
+@Composable
+fun OtherItem(modifier: Modifier = Modifier, name: Int, icon: Int) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .clip(shape = RoundedCornerShape(8.sdp))
+            .background(color = ChampionBlue),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = modifier.padding(vertical =  8.sdp),
+            verticalArrangement = Arrangement.spacedBy(8.sdp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = modifier.size(50.sdp)
+            )
+            Text(
+                text = stringResource(name),
+                fontSize = 20.ssp,
+                color = White,
+                fontFamily = FontPeydaBold
+            )
+        }
+    }
+}
+
+
 @Preview
 @Composable
-private fun HomeScreenPreview() {
-
-    HomeScreen()
+private fun HomeScreenPreview2() {
+    OtherItem(name = R.string.apps, icon = R.drawable.coin_icon)
 }

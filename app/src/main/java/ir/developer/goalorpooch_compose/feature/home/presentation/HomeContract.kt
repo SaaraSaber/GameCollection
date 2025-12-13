@@ -1,6 +1,8 @@
 package ir.developer.goalorpooch_compose.feature.home.presentation
 
 import ir.developer.goalorpooch_compose.feature.home.domain.models.AppItemModel
+import ir.developer.goalorpooch_compose.feature.home.domain.models.GameModel
+import ir.developer.goalorpooch_compose.feature.home.domain.models.OtherModel
 import ir.developer.goalorpooch_compose.feature.home.domain.models.ShopItemModel
 
 sealed interface HomeIntent {
@@ -33,7 +35,9 @@ data class HomeState(
     val showInfoDialog: Boolean = false,
     val showShopDialog: Boolean = false,
     val shopItems: List<ShopItemModel> = emptyList(),
-    val appItems: List<AppItemModel> = emptyList()
+    val appItems: List<AppItemModel> = emptyList(),
+    val gameItems: List<GameModel> = emptyList(),
+    val otherItems: List<OtherModel> = emptyList()
 )
 
 sealed interface HomeEffect {
