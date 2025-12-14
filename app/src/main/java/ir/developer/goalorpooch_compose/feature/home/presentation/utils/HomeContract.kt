@@ -1,4 +1,4 @@
-package ir.developer.goalorpooch_compose.feature.home.presentation
+package ir.developer.goalorpooch_compose.feature.home.presentation.utils
 
 import ir.developer.goalorpooch_compose.feature.home.domain.models.AppItemModel
 import ir.developer.goalorpooch_compose.feature.home.domain.models.GameModel
@@ -30,17 +30,23 @@ sealed interface HomeIntent {
 
 data class HomeState(
     val coinBalance: Int = 0,
-    val showExitDialog: Boolean = false,
-    val showAppsDialog: Boolean = false,
-    val showInfoDialog: Boolean = false,
-    val showShopDialog: Boolean = false,
+    val activeDialog: HomeDialogType = HomeDialogType.NONE,
     val shopItems: List<ShopItemModel> = emptyList(),
     val appItems: List<AppItemModel> = emptyList(),
     val gameItems: List<GameModel> = emptyList(),
-    val otherItems: List<OtherModel> = emptyList()
+    val otherItems: List<OtherModel> = emptyList(),
 )
 
 sealed interface HomeEffect {
     data class Navigation(val route: String) : HomeEffect
     data object CloseApplication : HomeEffect
+    data object OpenMarket : HomeEffect
+}
+
+enum class HomeDialogType {
+    NONE,  //no dialog
+    EXIT,  // open dialog exit
+    INFO,  // open dialog info
+    SHOP,  // open dialog shop
+    APPS  // open dialog apps
 }

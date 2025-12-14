@@ -4,4 +4,111 @@
     <string name="mafia">مدیریت مافیا</string>
     <string name="apps">برنامه ها</string>
     <string name="shop">فروشگاه</string>
+    <string name="about_us">درباره ما</string>
+    <string name="exit">خروج</string>
+    <string name="next_level">مرحله بعد</string>
+    <string name="start_game">شروع بازی</string>
+    <string name="start_time">شروع زمان</string>
+    <string name="cards">کارت ها</string>
+    <string name="cube">مکعب</string>
+    <string name="accept_request">قبول درخواست</string>
+    <string name="no">خیر</string>
+    <string name="yes">تایید</string>
+
+    <!--   title appBar-->
+    <string name="distribution_of_cards">توزیع کارت ها</string>
+    <string name="guide">راهنما</string>
+    <string name="determining_the_initiator">تعیین آغاز کننده</string>
+    <string name="setting">تنظیمات بازی</string>
+    <string name="show_cards">نمایش کارت ها</string>
+    <string name="score_cube">مکعب امتیاز</string>
+    <string name="confirmation">تاییدیه</string>
+
+
+    <string name="team_one">تیم اول</string>
+    <string name="team_two">تیم دوم</string>
+    <string name="shah_goal">شاه گل</string>
+    <string name="start_team_one">تیم اول بازی رو شروع می کند.</string>
+    <string name="start_team_two">تیم دوم بازی رو شروع می کند.</string>
+    <string name="description_score_cube_team_one">تیم اول مکعب چند امتیازی  انتخاب  می کنید ؟</string>
+    <string name="description_score_cube_team_two">تیم دوم مکعب چند امتیازی  انتخاب  می کنید ؟</string>
+    <string name="description_confirm_score_cube_team_one">تیم اول آیا مکعب %d امتیازی را قبول می کنید ؟</string>
+    <string name="description_confirm_score_cube_team_two">تیم دوم آیا مکعب %d امتیازی را قبول می کنید ؟</string>
+    <string name="description_choose_card_team_one">تیم اول کارت مورد نظر خود را انتخاب کند.</string>
+    <string name="description_choose_card_team_two">تیم دوم کارت مورد نظر خود را انتخاب کند.</string>
+    <string name="start_random">انتخاب تصادفی آغازکننده</string>
+    <string name="starter_description">به دو تیم تقسیم شوید و سپس تیم آغاز کننده بازی را مشخص کنید.</string>
+    <string name="description_setting">در این بخش می توانید بازی را برای خود شخصی سازی کنید، تنظیمات اولیه ی بازی را مشخص کنید.\nزمان به ثانیه است.</string>
+    <string name="description_apps">منتخب برنامه‌های ما را ببینید! برای دانلود، کافیست روی برنامه دلخواهتان کلیک کنید.</string>
+    <string name="description_exit_app">لطفاً برای حمایت از ما  ۵ ستاره بدهید! حمایت شما برای ما بسیار ارزشمند است.️</string>
+    <string name="description_exit_game">اگر اکنون از بازی خارج شوید، باید بازی را از ابتدا شروع کنید. آیا مطمئن هستید که می‌خواهید ادامه دهید؟️</string>
+    <string name="rate">امتیاز دهید</string>
+    <string name="description_final_game_team_one">تیم اول \n موفق به کسب قهرمانی شد.</string>
+    <string name="description_final_game_team_two">تیم دوم \n موفق به کسب قهرمانی شد.</string>
+    <string name="result_of_this_round">نتیجه این دور</string>
+    <string name="result_of_shah_goal">نتیجه شاه گل</string>
+    <string name="final_result">نتیجه نهایی</string>
+    <string name="first_team_scored_a_single_goal">تیم اول گل را تک ضرب گرفت.</string>
+    <string name="first_team_scored">تیم اول گل را گرفت.</string>
+    <string name="first_team_scored_shah_goal">تیم اول شاه گل را گرفت.</string>
+    <string name="first_team_did_not_scored_shah_goal">تیم اول شاه گل را نگرفت.</string>
+    <string name="second_team_did_not_scored_shah_goal">تیم دوم شاه گل را نگرفت.</string>
+    <string name="second_team_scored_shah_goal">تیم دوم شاه گل را گرفت.</string>
+    <string name="first_team_did_not_score">تیم اول گل را نگرفت.</string>
+    <string name="second_team_scored_a_single_goal">تیم دوم گل را تک ضرب گرفت.</string>
+    <string name="second_team_scored">تیم دوم گل را گرفت.</string>
+    <string name="second_team_did_not_score">تیم دوم گل را نگرفت.</string>
+    <string name="description_opening_duel">دو نفر مقابل هم دوئل آغازین را انجام دهید تا شروع کننده بازی مشخص بشود.</string>
+    <string name="opening_duel">دوئل آغازین بازی</string>
+    <string name="result_duel">نتیجه دوئل</string>
+    <string name="first_team_kept_goal.">تیم اول گل را حفظ کرد.</string>
+    <string name="second_team_kept_goal.">تیم دوم گل را حفظ کرد.</string>
+
+    <string name="number_player">تعداد بازیکنان</string>
+    <string name="victory_points">امتیاز پیروزی</string>
+    <string name="time_get_goal">زمان گرفتن گل</string>
+    <string name="time_get_king_goal">زمان گرفتن شاه گل</string>
+    <string name="number_cards">تعداد کارت های بازی</string>
+    <string name="description_about_us">تیم ما با طراحی یک بازی تیمی کاملاً ایرانی، شور و هیجان یک رقابت نفس‌گیر را به گوشی‌های شما آورده است!\nگل یا پوچ فقط یک بازی نیست، بلکه یک چالش واقعی برای سرعت، دقت و زیرکی شماست!\nدوستان و خانواده را به میدان دعوت کنید، فریب دهید، حدس بزنید و پیروز شوید!</string>
+    <string name="contact_support">ارتباط با پشتیبانی</string>
+    <string name="description_contact_support">برای ارسال انتقادات و پیشنهادات، لطفاً اینجا کلیک کنید.</string>
+    <string name="support">بازی گل یا پوچ</string>
+    <string name="address_email">saraaasaber77@gmail.com</string>
+    <string name="message_catch">متاسفانه مشکلی پیش آمده است.</string>
+
+    <!--    cards   -->
+    <string name="free_stone_free_sparrow">سنگ مفت گنجشک مفت</string>
+    <string name="description_free_stone_free_sparrow">این کارت به تیم حدس زننده کمک میکند که اگر یکبار اشتباه کند و گل را درست حدس نزند یک دست دیگر را که به آن مشکوک است باز کند.از این کارت برای هر تیم دو عدد وجود دارد.</string>
+    <string name="big_ball">گوی بزرگ</string>
+    <string name="description_bid_ball"> این کارت به تیم حدس زننده کمک می\u200Cکند تا به تیم مقابل دستور دهد تا به جای بازی با گوی معمولی با گوی بزرگتر بازی کند. در واقع بازی با گوی بزرگتر سخت\u200Cتر می\u200Cشود و گل زودتر لو می\u200Cرود.</string>
+    <string name="sound_ball">گوی صدا دار</string>
+    <string name="description_sound_ball"> کارت گوی صدا دار یکی از هیجان\u200Cانگیزترین کارت\u200Cهای بازی است. چون به تیم حدس زننده کمک می\u200Cکند تا گل را از تیم مقابل راحت\u200Cتر پس بگیرد چرا که تیم مقابل مجبور از با گویی بازی کند که با هر حرکت صدا می\u200Cدهد!</string>
+    <string name="one_arrow_and_two_badges">یک تیر و دو نشان</string>
+    <string name="description_one_arrow_and_two_badges">با پوچ کردن درست یک دست سر گروه تیم مقابل موظف است یک دست دیگر را پوچ کند.از این کارت دو عدد برای هر تیم وجود دارد.</string>
+    <string name="antenna">آنتن</string>
+    <string name="description_antenna">تیم حدس زننده می تواند از تیم حریف سوالی بپرسد بازیکن موظف است حقیقت را با بله و خیر جواب دهد.</string>
+    <string name="duel">دوئل</string>
+    <string name="description_duel">بازیکنی که صاحب گل است گل را نشان داده و به صورت تک به تک با کسی وارد نبرد می شود.</string>
+    <string name="empty_game">خالی بازی</string>
+    <string name="description_empty_game">تیم حریف باید سه خالی بازی مجدد انجام دهد.</string>
+    <string name="remove_one_hand">حذف یک دست</string>
+    <string name="description_remove_one_hand">سر گروه تیم حریف باید یکی از دستان تیم خود را پوچ کند.</string>
+
+    <!--    apps-->
+    <string name="open_chest">چیستان باز</string>
+    <string name="description_open_chest">آیا برای چالش‌های فکری آماده‌اید؟</string>
+    <string name="pro_wallpaper">تصویر زمینه حرفه‌ای</string>
+    <string name="description_pro_wallpaper">تصویر زمینه خود را به روز و حرفه‌ای کنید!</string>
+    <string name="intelligence_test">تست هوش ریاضی</string>
+    <string name="description_intelligence_test">آیا آماده‌اید ذهن خود را به چالش بکشید؟</string>
+    <string name="check_list">چک لیست</string>
+    <string name="description_check_list">به راحتی روزهایتان را مدیریت کنید!</string>
+    <string name="dare_or_truth">جرات یا حقیقت</string>
+    <string name="description_dare_or_truth">بازی‌ای مناسب برای شبنشینی‌های دوستانه</string>
+
+
+    <!--    toast-->
+    <string name="there_is_no_cube">موجودی مکعب صفر است.</string>
+    <string name="there_is_no_card">موجودی کارت صفر است.</string>
+    <string name="there_is_no_empty_game">موجودی خالی بازی صفر است.</string>
 </resources>

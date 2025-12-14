@@ -1,5 +1,6 @@
 package ir.developer.goalorpooch_compose.feature.home.presentation.screen
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,12 +27,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,8 +51,11 @@ import ir.developer.goalorpooch_compose.core.theme.PaddingScreenSize
 import ir.developer.goalorpooch_compose.core.theme.Rose
 import ir.developer.goalorpooch_compose.core.theme.RoundedCornerSize
 import ir.developer.goalorpooch_compose.core.theme.White
-import ir.developer.goalorpooch_compose.feature.home.presentation.HomeIntent
-import ir.developer.goalorpooch_compose.feature.home.presentation.HomeState
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeDialogType
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeEffect
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeIntent
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeState
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.openMarket
 import ir.developer.goalorpooch_compose.feature.home.presentation.viewmodel.HomeViewModel
 import ir.kaaveh.sdpcompose.sdp
 import ir.kaaveh.sdpcompose.ssp
@@ -62,6 +68,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
     HomeScreenContent(
         modifier = modifier,
         state = state,
+        viewModel = viewModel,
         onIntent = viewModel::homeIntentHandel
     )
 
@@ -71,8 +78,26 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
 fun HomeScreenContent(
     modifier: Modifier,
     state: HomeState,
-    onIntent: (HomeIntent) -> Unit
+    onIntent: (HomeIntent) -> Unit,
+    viewModel: HomeViewModel
 ) {
+    val context = LocalContext.current
+    val activity = (context as? Activity)
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is HomeEffect.OpenMarket -> {
+                    openMarket(context)
+                }
+
+                is HomeEffect.Navigation -> {}
+                is HomeEffect.CloseApplication -> {
+                    activity?.finishAffinity()
+                }
+            }
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = DarkBackground, topBar = {
@@ -125,6 +150,22 @@ fun HomeScreenContent(
                 }
             }
         }
+
+        when (state.activeDialog) {
+            HomeDialogType.EXIT -> {
+                ExitAppDialog(
+                    onDismiss = { onIntent(HomeIntent.OnDialogDismissed) },
+                    onClickStar = { onIntent(HomeIntent.OnStarClicked) },
+                    onClickExit = { onIntent(HomeIntent.OnExitConfirmed) }
+                )
+            }
+
+            HomeDialogType.APPS -> {}
+            HomeDialogType.INFO -> {}
+            HomeDialogType.SHOP -> {}
+            HomeDialogType.NONE -> {}
+        }
+
     }
 
 }
@@ -257,7 +298,7 @@ fun OtherItem(modifier: Modifier = Modifier, name: Int, icon: Int) {
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = modifier.padding(vertical =  8.sdp),
+            modifier = modifier.padding(vertical = 8.sdp),
             verticalArrangement = Arrangement.spacedBy(8.sdp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

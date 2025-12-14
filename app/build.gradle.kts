@@ -23,6 +23,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "mode"
+    productFlavors {
+        create("myket") {
+            dimension = "mode"
+            buildConfigField("String", "MARKET", "\"myket\"")
+        }
+        create("bazar") {
+            dimension = "mode"
+            buildConfigField("String", "MARKET", "\"bazar\"")
+        }
+    }
+    buildFeatures {
+        buildConfig = true
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
