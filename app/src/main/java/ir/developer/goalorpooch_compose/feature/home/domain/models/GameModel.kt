@@ -1,5 +1,7 @@
 package ir.developer.goalorpooch_compose.feature.home.domain.models
 
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.OtherItemAction
+
 data class GameModel(
     val id:Int,
     val name: Int,
@@ -9,5 +11,6 @@ data class GameModel(
 data class OtherModel(
     val id:Int,
     val name: Int,
-    val icon: Int
+    val icon: Int,
+    val action: OtherItemAction
 )

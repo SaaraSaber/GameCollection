@@ -7,6 +7,7 @@ import ir.developer.goalorpooch_compose.feature.home.domain.models.GameModel
 import ir.developer.goalorpooch_compose.feature.home.domain.models.OtherModel
 import ir.developer.goalorpooch_compose.feature.home.domain.models.ShopItemModel
 import ir.developer.goalorpooch_compose.feature.home.domain.repository.HomeRepository
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.OtherItemAction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -32,9 +33,41 @@ class HomeRepositoryImpl @Inject constructor(
 
     override suspend fun getAppItems(): List<AppItemModel> {
         return listOf(
-            AppItemModel(id = 0, name = "", description = "", iconRes = 0),
-            AppItemModel(id = 0, name = "", description = "", iconRes = 0),
-            AppItemModel(id = 0, name = "", description = "", iconRes = 0)
+            AppItemModel(
+                id = 0,
+                name = R.string.open_chest,
+                description = R.string.description_open_chest,
+                iconRes = R.drawable.pic_open_chest,
+                packageName = "ir.developre.chistangame"
+            ),
+            AppItemModel(
+                id = 1,
+                name = R.string.pro_wallpaper,
+                description = R.string.description_pro_wallpaper,
+                iconRes = R.drawable.pic_pro_wallpaper,
+                packageName = "ir.forrtestt.wall1"
+            ),
+            AppItemModel(
+                id = 2,
+                name = R.string.intelligence_test,
+                description = R.string.description_intelligence_test,
+                iconRes = R.drawable.pic_intelligence_test,
+                packageName = "com.example.challenginquestions"
+            ),
+            AppItemModel(
+                id = 3,
+                name = R.string.check_list,
+                description =R.string.description_check_list,
+                iconRes = R.drawable.pic_check_list,
+                packageName = "ir.developer.todolist"
+            ),
+            AppItemModel(
+                id = 4,
+                name = R.string.dare_or_truth,
+                description = R.string.description_dare_or_truth,
+                iconRes = R.drawable.pic_dare_or_truth,
+                packageName = "ir.codesphere.truthordare"
+            )
         )
     }
 
@@ -64,8 +97,8 @@ class HomeRepositoryImpl @Inject constructor(
 
     override suspend fun othersItems(): List<OtherModel> {
         return listOf(
-            OtherModel(id = 1, name = R.string.shop, icon = R.drawable.shop_icon),
-            OtherModel(id = 2, name = R.string.apps, icon = R.drawable.apps_icon)
+            OtherModel(id = 1, name = R.string.shop, icon = R.drawable.shop_icon, action = OtherItemAction.OPEN_SHOP_DIALOG),
+            OtherModel(id = 2, name = R.string.apps, icon = R.drawable.apps_icon, action = OtherItemAction.OPEN_APP_DIALOG)
         )
     }
 }

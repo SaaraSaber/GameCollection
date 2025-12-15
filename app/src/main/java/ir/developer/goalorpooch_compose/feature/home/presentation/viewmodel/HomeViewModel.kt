@@ -6,8 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.developer.goalorpooch_compose.feature.home.domain.repository.HomeRepository
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeDialogType
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeEffect
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeEffect.OpenMarketPage
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeIntent
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeState
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.OtherItemAction
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -29,6 +31,7 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
         observeUserCoin()
         loadGames()
         loadOthers()
+        loadAppItems()
     }
 
     private fun loadOthers() {
@@ -70,12 +73,33 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
                 sendEffect(HomeEffect.CloseApplication)
             }
 
-            is HomeIntent.OnEmailClicked -> {}
+            is HomeIntent.OnEmailClicked -> {
+                setDialog(HomeDialogType.NONE)
+                sendEffect(HomeEffect.OpenEmail)
+            }
+
             is HomeIntent.OnMafiaClicked -> {}
             is HomeIntent.OnDialogDismissed -> setDialog(HomeDialogType.NONE)
-            is HomeIntent.OnAppItemClicked -> {}
+            is HomeIntent.OnAppItemClicked -> {
+                setDialog(HomeDialogType.NONE)
+                sendEffect(OpenMarketPage(intent.packageName))
+            }
+
             is HomeIntent.OnBuyCoinClicked -> updateCoin(intent.amount)
             is HomeIntent.OnGolYaPoochClicked -> {}
+            is HomeIntent.OnOtherItemClicked -> {
+                when (intent.action) {
+                    OtherItemAction.OPEN_APP_DIALOG -> {
+                        setDialog(HomeDialogType.APPS)
+                    }
+
+                    OtherItemAction.OPEN_SHOP_DIALOG -> {
+                        setDialog(HomeDialogType.SHOP)
+                    }
+
+                    OtherItemAction.NONE -> {}
+                }
+            }
         }
     }
 
@@ -92,6 +116,13 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
     private fun sendEffect(effect: HomeEffect) {
         viewModelScope.launch {
             _effect.emit(effect)
+        }
+    }
+
+    private fun loadAppItems() {
+        viewModelScope.launch {
+            val apps = repository.getAppItems()
+            _state.update { it.copy(appItems = apps) }
         }
     }
 }

@@ -3,6 +3,7 @@ package ir.developer.goalorpooch_compose.feature.home.presentation.screen
 import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import ir.developer.goalorpooch_compose.R
 import ir.developer.goalorpooch_compose.core.theme.ChampionBlue
@@ -55,6 +55,8 @@ import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeDial
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeEffect
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeIntent
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeState
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.openAppInMarket
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.openEmail
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.openMarket
 import ir.developer.goalorpooch_compose.feature.home.presentation.viewmodel.HomeViewModel
 import ir.kaaveh.sdpcompose.sdp
@@ -87,12 +89,21 @@ fun HomeScreenContent(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is HomeEffect.OpenMarket -> {
-                    openMarket(context)
+                    context.openMarket()
                 }
 
                 is HomeEffect.Navigation -> {}
                 is HomeEffect.CloseApplication -> {
                     activity?.finishAffinity()
+                }
+
+                is HomeEffect.OpenEmail -> {
+                    context.openEmail()
+                }
+
+                is HomeEffect.OpenOtherApp -> {}
+                is HomeEffect.OpenMarketPage -> {
+                    context.openAppInMarket(effect.packageName)
                 }
             }
         }
@@ -115,7 +126,7 @@ fun HomeScreenContent(
                 .fillMaxSize()
                 .background(color = DarkBackground)
         ) {
-            Column() {
+            Column {
                 HorizontalDivider(
                     modifier = modifier.padding(
                         start = PaddingScreenSize(),
@@ -145,7 +156,11 @@ fun HomeScreenContent(
                     modifier = modifier.fillMaxWidth()
                 ) {
                     items(state.otherItems) { other ->
-                        OtherItem(name = other.name, icon = other.icon)
+                        OtherItem(name = other.name, icon = other.icon, onCliCk = {
+                            onIntent(
+                                HomeIntent.OnOtherItemClicked(other.action)
+                            )
+                        })
                     }
                 }
             }
@@ -160,8 +175,24 @@ fun HomeScreenContent(
                 )
             }
 
-            HomeDialogType.APPS -> {}
-            HomeDialogType.INFO -> {}
+            HomeDialogType.APPS -> {
+                ContentAppDialog(
+                    items = state.appItems,
+                    onDismiss = { onIntent(HomeIntent.OnDialogDismissed) },
+                    onClickItem = { pkg ->
+                        onIntent(
+                            HomeIntent.OnAppItemClicked(packageName = pkg)
+                        )
+                    })
+            }
+
+            HomeDialogType.INFO -> {
+                InfoDialog(
+                    onDismiss = { onIntent(HomeIntent.OnDialogDismissed) },
+                    onItemClick = { onIntent(HomeIntent.OnEmailClicked) }
+                )
+            }
+
             HomeDialogType.SHOP -> {}
             HomeDialogType.NONE -> {}
         }
@@ -289,12 +320,13 @@ fun GameList(modifier: Modifier = Modifier, background: Int, nameGame: Int, icon
 }
 
 @Composable
-fun OtherItem(modifier: Modifier = Modifier, name: Int, icon: Int) {
+fun OtherItem(modifier: Modifier = Modifier, name: Int, icon: Int, onCliCk: () -> Unit) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .clip(shape = RoundedCornerShape(8.sdp))
-            .background(color = ChampionBlue),
+            .background(color = ChampionBlue)
+            .clickable { onCliCk() },
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -315,11 +347,4 @@ fun OtherItem(modifier: Modifier = Modifier, name: Int, icon: Int) {
             )
         }
     }
-}
-
-
-@Preview
-@Composable
-private fun HomeScreenPreview2() {
-    OtherItem(name = R.string.apps, icon = R.drawable.coin_icon)
 }

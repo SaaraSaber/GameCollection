@@ -22,10 +22,11 @@ sealed interface HomeIntent {
     data object OnStarClicked : HomeIntent
 
     //action in dialog apps
-    data class OnAppItemClicked(val item: String) : HomeIntent
+    data class OnAppItemClicked(val packageName: String) : HomeIntent
 
     //action in dialog shop
     data class OnBuyCoinClicked(val amount: Int) : HomeIntent
+    data class OnOtherItemClicked(val action: OtherItemAction) : HomeIntent
 }
 
 data class HomeState(
@@ -41,6 +42,9 @@ sealed interface HomeEffect {
     data class Navigation(val route: String) : HomeEffect
     data object CloseApplication : HomeEffect
     data object OpenMarket : HomeEffect
+    data object OpenEmail : HomeEffect
+    data object OpenOtherApp : HomeEffect
+    data class OpenMarketPage(val packageName: String) : HomeEffect
 }
 
 enum class HomeDialogType {
@@ -49,4 +53,10 @@ enum class HomeDialogType {
     INFO,  // open dialog info
     SHOP,  // open dialog shop
     APPS  // open dialog apps
+}
+
+enum class OtherItemAction {
+    OPEN_APP_DIALOG,
+    OPEN_SHOP_DIALOG,
+    NONE,
 }
