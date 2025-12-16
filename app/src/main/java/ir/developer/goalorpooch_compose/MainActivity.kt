@@ -5,8 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
+import ir.developer.goalorpooch_compose.core.navigation.AppNavigation
 import ir.developer.goalorpooch_compose.core.theme.GameCollection2Theme
-import ir.developer.goalorpooch_compose.feature.home.presentation.screen.HomeScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GameCollection2Theme {
-               HomeScreen()
+                AppNavigation()
             }
         }
     }
