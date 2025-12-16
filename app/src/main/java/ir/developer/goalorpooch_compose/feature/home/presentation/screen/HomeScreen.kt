@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
 import ir.developer.goalorpooch_compose.R
 import ir.developer.goalorpooch_compose.core.theme.ChampionBlue
 import ir.developer.goalorpooch_compose.core.theme.DarkBackground
@@ -63,15 +64,19 @@ import ir.kaaveh.sdpcompose.sdp
 import ir.kaaveh.sdpcompose.ssp
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
-
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsState()
 
     HomeScreenContent(
         modifier = modifier,
         state = state,
         viewModel = viewModel,
-        onIntent = viewModel::homeIntentHandel
+        onIntent = viewModel::homeIntentHandel,
+        navController = navController
     )
 
 }
@@ -81,19 +86,23 @@ fun HomeScreenContent(
     modifier: Modifier,
     state: HomeState,
     onIntent: (HomeIntent) -> Unit,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    navController: NavController
 ) {
     val context = LocalContext.current
     val activity = (context as? Activity)
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is HomeEffect.OpenMarket -> {
+                is HomeEffect.OpenMarketForRate -> {
                     context.openMarket()
                 }
 
-                is HomeEffect.Navigation -> {}
-                is HomeEffect.CloseApplication -> {
+                is HomeEffect.Navigation -> {
+                    navController.navigate(effect.route)
+                }
+
+                is HomeEffect.FinishApp -> {
                     activity?.finishAffinity()
                 }
 
@@ -101,8 +110,7 @@ fun HomeScreenContent(
                     context.openEmail()
                 }
 
-                is HomeEffect.OpenOtherApp -> {}
-                is HomeEffect.OpenMarketPage -> {
+                is HomeEffect.OpenExternalApp -> {
                     context.openAppInMarket(effect.packageName)
                 }
             }
@@ -115,8 +123,8 @@ fun HomeScreenContent(
             HomeTopBar(
                 modifier = Modifier.statusBarsPadding(),
                 coinBalance = state.coinBalance,
-                onExitClick = { onIntent(HomeIntent.OnExitClicked) },
-                onInfoClick = { onIntent(HomeIntent.OnInfoClicked) }
+                onExitClick = { onIntent(HomeIntent.ChangeDialogState(HomeDialogType.EXIT)) },
+                onInfoClick = { onIntent(HomeIntent.ChangeDialogState(HomeDialogType.INFO)) }
             )
         }
     ) { paddingValues ->
@@ -143,7 +151,8 @@ fun HomeScreenContent(
                         GameList(
                             background = game.background,
                             nameGame = game.name,
-                            iconGame = game.icon
+                            iconGame = game.icon,
+                            onClick = { onIntent(HomeIntent.OnGameClicked(game.route)) }
                         )
                     }
                 }
@@ -158,7 +167,7 @@ fun HomeScreenContent(
                     items(state.otherItems) { other ->
                         OtherItem(name = other.name, icon = other.icon, onCliCk = {
                             onIntent(
-                                HomeIntent.OnOtherItemClicked(other.action)
+                                HomeIntent.ChangeDialogState(other.targetDialog)
                             )
                         })
                     }
@@ -170,7 +179,7 @@ fun HomeScreenContent(
             HomeDialogType.EXIT -> {
                 ExitAppDialog(
                     onDismiss = { onIntent(HomeIntent.OnDialogDismissed) },
-                    onClickStar = { onIntent(HomeIntent.OnStarClicked) },
+                    onClickStar = { onIntent(HomeIntent.OnRateClicked) },
                     onClickExit = { onIntent(HomeIntent.OnExitConfirmed) }
                 )
             }
@@ -281,12 +290,19 @@ fun HomeTopBar(
 }
 
 @Composable
-fun GameList(modifier: Modifier = Modifier, background: Int, nameGame: Int, iconGame: Int) {
+fun GameList(
+    modifier: Modifier = Modifier,
+    background: Int,
+    nameGame: Int,
+    iconGame: Int,
+    onClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(120.sdp)
-            .clip(shape = RoundedCornerShape(10.sdp)),
+            .clip(shape = RoundedCornerShape(10.sdp))
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Image(

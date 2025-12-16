@@ -2,12 +2,13 @@ package ir.developer.goalorpooch_compose.feature.home.data.repository
 
 import ir.developer.goalorpooch_compose.R
 import ir.developer.goalorpooch_compose.core.database.dao.UserDao
+import ir.developer.goalorpooch_compose.core.navigation.Routes
 import ir.developer.goalorpooch_compose.feature.home.domain.models.AppItemModel
 import ir.developer.goalorpooch_compose.feature.home.domain.models.GameModel
 import ir.developer.goalorpooch_compose.feature.home.domain.models.OtherModel
 import ir.developer.goalorpooch_compose.feature.home.domain.models.ShopItemModel
 import ir.developer.goalorpooch_compose.feature.home.domain.repository.HomeRepository
-import ir.developer.goalorpooch_compose.feature.home.presentation.utils.OtherItemAction
+import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeDialogType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -57,7 +58,7 @@ class HomeRepositoryImpl @Inject constructor(
             AppItemModel(
                 id = 3,
                 name = R.string.check_list,
-                description =R.string.description_check_list,
+                description = R.string.description_check_list,
                 iconRes = R.drawable.pic_check_list,
                 packageName = "ir.developer.todolist"
             ),
@@ -84,21 +85,33 @@ class HomeRepositoryImpl @Inject constructor(
                 id = 1,
                 name = R.string.manege_goolyapooch,
                 background = R.drawable.background_golyapooch,
-                icon = R.drawable.hand_icon
+                icon = R.drawable.hand_icon,
+                route = Routes.GOOLYAPOOCH
             ),
             GameModel(
                 id = 2,
                 name = R.string.mafia,
                 background = R.drawable.background_mafia,
-                icon = R.drawable.mafia_icon
+                icon = R.drawable.mafia_icon,
+                route = Routes.MAFIA
             )
         )
     }
 
     override suspend fun othersItems(): List<OtherModel> {
         return listOf(
-            OtherModel(id = 1, name = R.string.shop, icon = R.drawable.shop_icon, action = OtherItemAction.OPEN_SHOP_DIALOG),
-            OtherModel(id = 2, name = R.string.apps, icon = R.drawable.apps_icon, action = OtherItemAction.OPEN_APP_DIALOG)
+            OtherModel(
+                id = 1,
+                name = R.string.shop,
+                icon = R.drawable.shop_icon,
+                targetDialog = HomeDialogType.SHOP
+            ),
+            OtherModel(
+                id = 2,
+                name = R.string.apps,
+                icon = R.drawable.apps_icon,
+                targetDialog = HomeDialogType.APPS
+            )
         )
     }
 }

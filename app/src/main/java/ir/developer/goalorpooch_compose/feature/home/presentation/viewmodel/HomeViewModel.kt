@@ -6,10 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.developer.goalorpooch_compose.feature.home.domain.repository.HomeRepository
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeDialogType
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeEffect
-import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeEffect.OpenMarketPage
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeIntent
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeState
-import ir.developer.goalorpooch_compose.feature.home.presentation.utils.OtherItemAction
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -59,18 +57,18 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
 
     fun homeIntentHandel(intent: HomeIntent) {
         when (intent) {
-            is HomeIntent.OnAppsClicked -> setDialog(HomeDialogType.APPS)
-            is HomeIntent.OnExitClicked -> setDialog(HomeDialogType.EXIT)
-            is HomeIntent.OnInfoClicked -> setDialog(HomeDialogType.INFO)
-            is HomeIntent.OnShopClicked -> setDialog(HomeDialogType.SHOP)
-            is HomeIntent.OnStarClicked -> {
-                setDialog(HomeDialogType.NONE)
-                sendEffect(HomeEffect.OpenMarket)
-            }
-
             is HomeIntent.OnExitConfirmed -> {
                 setDialog(HomeDialogType.NONE)
-                sendEffect(HomeEffect.CloseApplication)
+                sendEffect(HomeEffect.FinishApp)
+            }
+
+            is HomeIntent.ChangeDialogState -> {
+                setDialog(intent.dialogType)
+            }
+
+            is HomeIntent.OnRateClicked -> {
+                setDialog(HomeDialogType.NONE)
+                sendEffect(HomeEffect.OpenMarketForRate)
             }
 
             is HomeIntent.OnEmailClicked -> {
@@ -78,28 +76,18 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
                 sendEffect(HomeEffect.OpenEmail)
             }
 
-            is HomeIntent.OnMafiaClicked -> {}
+            is HomeIntent.OnGameClicked -> {
+                sendEffect(HomeEffect.Navigation(intent.route))
+            }
+
             is HomeIntent.OnDialogDismissed -> setDialog(HomeDialogType.NONE)
             is HomeIntent.OnAppItemClicked -> {
                 setDialog(HomeDialogType.NONE)
-                sendEffect(OpenMarketPage(intent.packageName))
+                sendEffect(HomeEffect.OpenExternalApp(intent.packageName))
             }
 
             is HomeIntent.OnBuyCoinClicked -> updateCoin(intent.amount)
-            is HomeIntent.OnGolYaPoochClicked -> {}
-            is HomeIntent.OnOtherItemClicked -> {
-                when (intent.action) {
-                    OtherItemAction.OPEN_APP_DIALOG -> {
-                        setDialog(HomeDialogType.APPS)
-                    }
 
-                    OtherItemAction.OPEN_SHOP_DIALOG -> {
-                        setDialog(HomeDialogType.SHOP)
-                    }
-
-                    OtherItemAction.NONE -> {}
-                }
-            }
         }
     }
 
@@ -126,36 +114,3 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
         }
     }
 }
-
-
-/**
- * private fun loadData() {
- *     viewModelScope.launch {
- *         // شروع لودینگ
- *         _state.update { it.copy(isLoading = true) }
- *
- *         try {
- *             // استفاده از async برای اینکه هر دو همزمان (موازی) دانلود شوند
- *             // اگر پشت سر هم بنویسید، دومی منتظر اولی می‌ماند (که کندتر است)
- *             val gamesDeferred = async { repository.gamesItems() }
- *             val othersDeferred = async { repository.othersItems() }
- *
- *             // منتظر می‌مانیم تا هر دو تمام شوند
- *             val games = gamesDeferred.await()
- *             val others = othersDeferred.await()
- *
- *             // آپدیت نهایی
- *             _state.update {
- *                 it.copy(
- *                     isLoading = false,
- *                     gameItems = games,
- *                     otherItems = others
- *                 )
- *             }
- *         } catch (e: Exception) {
- *             // هندل کردن خطا (مثلا نمایش اسنک‌بار)
- *             _state.update { it.copy(isLoading = false) }
- *         }
- *     }
- * }
- */
