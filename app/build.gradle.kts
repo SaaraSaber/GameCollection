@@ -5,8 +5,12 @@ plugins {
     alias(libs.plugins.hilt.dagger)
     alias(libs.plugins.ksp)
     alias(libs.plugins.sentry)
+    alias(libs.plugins.androidx.room)
 }
-kotlin { jvmToolchain(17) }
+kotlin {
+    jvmToolchain(17)
+    sourceSets.all { languageSettings.enableLanguageFeature("ExplicitBackingFields") }
+}
 android {
     namespace = "ir.developer.goalorpooch_compose"
     compileSdk {
@@ -21,6 +25,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     flavorDimensions += "mode"
@@ -54,7 +59,9 @@ android {
         compose = true
     }
 }
-
+room {
+    schemaDirectory("$projectDir/schemas")
+}
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -82,4 +89,5 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
     implementation(libs.sdp)
+    implementation(libs.datastore)
 }

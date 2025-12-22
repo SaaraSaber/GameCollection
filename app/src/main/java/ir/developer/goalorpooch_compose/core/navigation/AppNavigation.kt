@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.SettingScreen
 import ir.developer.goalorpooch_compose.feature.home.presentation.screen.HomeScreen
 
 @Composable
@@ -18,10 +19,7 @@ fun AppNavigation() {
         }
         composable(Routes.MAFIA) { }
         composable(Routes.GOOLYAPOOCH) {
-//            GoolYaPoochScreen(
-//                // اگر صفحه بازی دکمه برگشت داره:
-//                onBackClick = { navController.popBackStack() }
-//            )
+            SettingScreen(navController = navController)
         }
     }
 }

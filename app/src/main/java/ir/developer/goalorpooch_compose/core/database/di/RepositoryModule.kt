@@ -4,6 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import ir.developer.goalorpooch_compose.feature.goolyapooch.data.repositoryimpl.SettingRepositoryImpl
+import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.repository.SettingRepository
 import ir.developer.goalorpooch_compose.feature.home.data.repository.HomeRepositoryImpl
 import ir.developer.goalorpooch_compose.feature.home.domain.repository.HomeRepository
 import javax.inject.Singleton
@@ -14,7 +16,13 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bundHomeRepository(
+    abstract fun bindHomeRepository(
         homeRepositoryImpl: HomeRepositoryImpl
     ): HomeRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingRepository(
+        settingRepositoryImpl: SettingRepositoryImpl
+    ): SettingRepository
 }

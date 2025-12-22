@@ -2,7 +2,6 @@ package ir.developer.goalorpooch_compose.feature.home.presentation.utils
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.core.net.toUri
 import ir.developer.goalorpooch_compose.BuildConfig
@@ -66,13 +65,13 @@ fun Context.openAppInMarket(packageName: String) {
     try {
         val intent = Intent(Intent.ACTION_VIEW)
         // لینک استاندارد بازار برای یک برنامه خاص
-        intent.data = Uri.parse("bazaar://details?id=$packageName")
+        intent.data = "bazaar://details?id=$packageName".toUri()
         intent.setPackage("com.farsitel.bazaar")
         startActivity(intent)
     } catch (e: Exception) {
         // اگر بازار نصب نبود، لینک وب را باز کن
         val webIntent =
-            Intent(Intent.ACTION_VIEW, Uri.parse("https://cafebazaar.ir/app/$packageName"))
+            Intent(Intent.ACTION_VIEW, "https://cafebazaar.ir/app/$packageName".toUri())
         startActivity(webIntent)
     }
 }

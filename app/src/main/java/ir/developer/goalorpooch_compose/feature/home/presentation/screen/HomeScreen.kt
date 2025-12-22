@@ -1,6 +1,8 @@
 package ir.developer.goalorpooch_compose.feature.home.presentation.screen
 
 import android.app.Activity
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -63,6 +65,7 @@ import ir.developer.goalorpooch_compose.feature.home.presentation.viewmodel.Home
 import ir.kaaveh.sdpcompose.sdp
 import ir.kaaveh.sdpcompose.ssp
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -78,7 +81,6 @@ fun HomeScreen(
         onIntent = viewModel::homeIntentHandel,
         navController = navController
     )
-
 }
 
 @Composable
@@ -142,7 +144,6 @@ fun HomeScreenContent(
                         bottom = PaddingScreenSize()
                     ), color = Leila
                 )
-
                 LazyColumn(
                     contentPadding = PaddingValues(8.sdp),
                     verticalArrangement = Arrangement.spacedBy(8.sdp)
@@ -209,7 +210,6 @@ fun HomeScreenContent(
     }
 
 }
-
 
 @Composable
 fun HomeTopBar(
