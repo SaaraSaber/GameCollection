@@ -57,6 +57,7 @@ import ir.developer.goalorpooch_compose.core.theme.paddingTopMedium
 import ir.developer.goalorpooch_compose.core.theme.sizePicSmall
 import ir.developer.goalorpooch_compose.core.theme.sizeRoundMax
 import ir.developer.goalorpooch_compose.core.theme.textSize
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.GameAppBar
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.SettingEffect
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.SettingIntent
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.SettingUiItem
@@ -94,11 +95,10 @@ fun SettingScreen(
                     )
             ) {
 
-//                AppBar(
-//                    title = stringResource(R.string.setting),
-//                    showBackButton = true,
-//                    navController = navController
-//                )
+                GameAppBar(
+                    title = stringResource(R.string.setting),
+                    onBackClick = { viewModel.handelIntent(SettingIntent.OnBackClicked) }
+                )
 
                 Text(
                     modifier = Modifier.padding(
