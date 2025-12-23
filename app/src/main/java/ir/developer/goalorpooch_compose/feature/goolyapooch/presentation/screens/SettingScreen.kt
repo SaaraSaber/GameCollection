@@ -76,7 +76,7 @@ fun SettingScreen(
             when (effect) {
                 SettingEffect.NavigateBack -> navController.popBackStack()
                 is SettingEffect.NavigateNextLevel -> {
-                    navController.navigate(Routes.GOOLYAPOOCH_DETERMINING_THE_GAME_STARTER)
+                    navController.navigate(Routes.GOOLYAPOOCH_STARTER)
                 }
             }
         }

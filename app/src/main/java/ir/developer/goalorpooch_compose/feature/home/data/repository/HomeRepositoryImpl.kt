@@ -86,7 +86,7 @@ class HomeRepositoryImpl @Inject constructor(
                 name = R.string.manege_goolyapooch,
                 background = R.drawable.background_golyapooch,
                 icon = R.drawable.hand_icon,
-                route = Routes.GOOLYAPOOCH
+                route = Routes.GOOLYAPOOCH_SETTING
             ),
             GameModel(
                 id = 2,

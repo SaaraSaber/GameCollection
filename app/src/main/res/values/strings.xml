@@ -1,10 +1,19 @@
 <resources>
     <string name="app_name">گل‌یا‌پوچ</string>
+
+
+    <!--    text btn-->
     <string name="manege_goolyapooch">مدیریت گل‌یا‌پوچ</string>
     <string name="mafia">مدیریت مافیا</string>
-    <string name="apps">برنامه ها</string>
     <string name="shop">فروشگاه</string>
+    <string name="btn_ok">تایید( %1$d )</string>
+    <string name="choose_card">انتخاب کارت</string>
+    <string name="continue_game">ادامه بازی</string>
+    <string name="repeat_game">تکرار بازی</string>
+    <string name="cansel">انصراف</string>
+    <string name="start">شروع</string>
     <string name="about_us">درباره ما</string>
+    <string name="apps">برنامه ها</string>
     <string name="exit">خروج</string>
     <string name="next_level">مرحله بعد</string>
     <string name="start_game">شروع بازی</string>
