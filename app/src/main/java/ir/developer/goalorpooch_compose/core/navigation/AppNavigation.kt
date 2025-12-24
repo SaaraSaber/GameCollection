@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.CardSelectionScreen
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.DisplayCardScreen
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.SettingScreen
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.StarterScreen
 import ir.developer.goalorpooch_compose.feature.home.presentation.screen.HomeScreen
@@ -35,6 +36,16 @@ fun AppNavigation() {
             )
         ) { backStackEntry ->
             CardSelectionScreen(navController = navController)
+        }
+
+        composable(
+            route = Routes.GOOLYAPOOCH_DISPLAY_CARDS,
+            arguments = listOf(
+                navArgument("currentTeamId") { type = NavType.IntType },
+                navArgument("starterTeamId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            DisplayCardScreen(navController = navController)
         }
     }
 }

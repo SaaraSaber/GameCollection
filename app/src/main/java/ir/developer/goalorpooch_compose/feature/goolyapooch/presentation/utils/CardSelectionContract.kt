@@ -22,6 +22,6 @@ sealed interface CardSelectionIntent {
 }
 
 sealed interface CardSelectionEffect {
-    data object NavigateToDisplay : CardSelectionEffect
+    data class NavigateToDisplay(val currentTeamId: Int, val starterTeamId: Int) : CardSelectionEffect
     data object NavigateToHome : CardSelectionEffect
 }

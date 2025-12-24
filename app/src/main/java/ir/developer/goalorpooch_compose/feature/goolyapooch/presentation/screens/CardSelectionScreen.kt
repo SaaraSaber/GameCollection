@@ -98,7 +98,11 @@ fun CardSelectionScreen(
                     inclusive = false
                 )
 
-                CardSelectionEffect.NavigateToDisplay -> navController.navigate(Routes.GOOLYAPOOCH_DISPLAY_CARDS)
+                is CardSelectionEffect.NavigateToDisplay -> navController.navigate(
+                    Routes.getCardDisplayRoute(
+                        currentTeamId = effect.currentTeamId, starterTeamId = effect.starterTeamId
+                    )
+                )
             }
         }
     }
@@ -167,8 +171,7 @@ fun CardSelectionScreen(
                             end = paddingRound()
                         )
                         .fillMaxWidth()
-                        .weight(1f)
-                    ,
+                        .weight(1f),
                     columns = GridCells.Fixed(3),
                     verticalArrangement = Arrangement.spacedBy(4.sdp),
                     horizontalArrangement = Arrangement.spacedBy(10.sdp),
