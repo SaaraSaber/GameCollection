@@ -46,14 +46,14 @@ import ir.developer.goalorpooch_compose.R
 import ir.developer.goalorpooch_compose.core.theme.ChampionBlue
 import ir.developer.goalorpooch_compose.core.theme.DarkBackground
 import ir.developer.goalorpooch_compose.core.theme.FontPeydaBold
-import ir.developer.goalorpooch_compose.core.theme.IconSize
+import ir.developer.goalorpooch_compose.core.theme.iconSize
 import ir.developer.goalorpooch_compose.core.theme.Leila
 import ir.developer.goalorpooch_compose.core.theme.MiamiBlue
-import ir.developer.goalorpooch_compose.core.theme.NumberFontSize
-import ir.developer.goalorpooch_compose.core.theme.PaddingScreenSize
+import ir.developer.goalorpooch_compose.core.theme.numberFontSize
 import ir.developer.goalorpooch_compose.core.theme.Rose
-import ir.developer.goalorpooch_compose.core.theme.RoundedCornerSize
+import ir.developer.goalorpooch_compose.core.theme.roundedCornerSize
 import ir.developer.goalorpooch_compose.core.theme.White
+import ir.developer.goalorpooch_compose.core.theme.paddingRound
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeDialogType
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeEffect
 import ir.developer.goalorpooch_compose.feature.home.presentation.utils.HomeIntent
@@ -139,9 +139,9 @@ fun HomeScreenContent(
             Column {
                 HorizontalDivider(
                     modifier = modifier.padding(
-                        start = PaddingScreenSize(),
-                        end = PaddingScreenSize(),
-                        bottom = PaddingScreenSize()
+                        start = paddingRound(),
+                        end = paddingRound(),
+                        bottom = paddingRound()
                     ), color = Leila
                 )
                 LazyColumn(
@@ -221,7 +221,7 @@ fun HomeTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(PaddingScreenSize()),
+            .padding(paddingRound()),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -234,11 +234,11 @@ fun HomeTopBar(
                     .size(24.sdp)
                     .background(
                         color = ChampionBlue,
-                        shape = RoundedCornerShape(RoundedCornerSize())
+                        shape = RoundedCornerShape(roundedCornerSize())
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                IconButton(onClick = { onExitClick() }, modifier = modifier.size(IconSize())) {
+                IconButton(onClick = { onExitClick() }, modifier = modifier.size(iconSize())) {
                     Icon(
                         painter = painterResource(R.drawable.exit_icon),
                         contentDescription = null,
@@ -252,11 +252,11 @@ fun HomeTopBar(
                     .size(24.sdp)
                     .background(
                         color = ChampionBlue,
-                        shape = RoundedCornerShape(RoundedCornerSize())
+                        shape = RoundedCornerShape(roundedCornerSize())
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                IconButton(onClick = { onInfoClick() }, modifier = modifier.size(IconSize())) {
+                IconButton(onClick = { onInfoClick() }, modifier = modifier.size(iconSize())) {
                     Icon(
                         painter = painterResource(R.drawable.info_circle),
                         contentDescription = null,
@@ -270,7 +270,7 @@ fun HomeTopBar(
             modifier = modifier
                 .background(
                     color = ChampionBlue,
-                    shape = RoundedCornerShape(RoundedCornerSize())
+                    shape = RoundedCornerShape(roundedCornerSize())
                 )
                 .padding(top = 4.sdp, bottom = 4.sdp, start = 6.sdp, end = 6.sdp)
         ) {
@@ -278,11 +278,11 @@ fun HomeTopBar(
                 horizontalArrangement = Arrangement.spacedBy(4.sdp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = coinBalance.toString(), color = White, fontSize = NumberFontSize())
+                Text(text = coinBalance.toString(), color = White, fontSize = numberFontSize())
                 Image(
                     painter = painterResource(R.drawable.coin_icon),
                     contentDescription = null,
-                    modifier = modifier.size(IconSize())
+                    modifier = modifier.size(iconSize())
                 )
             }
         }

@@ -5,21 +5,19 @@ import ir.kaaveh.sdpcompose.sdp
 import ir.kaaveh.sdpcompose.ssp
 
 @Composable
-fun IconSize() = 16.sdp
+fun iconSize() = 16.sdp
 
 @Composable
-fun RoundedCornerSize() = 2.sdp
+fun roundedCornerSize() = 2.sdp
 
 @Composable
-fun PaddingScreenSize() = 8.sdp
+fun sizeRoundBottomSheet() = 15.sdp
 
 @Composable
-fun NumberFontSize() = 12.ssp
+fun numberFontSize() = 12.ssp
 
 @Composable
 fun paddingRoundDialog() = 12.sdp
-
-
 
 @Composable
 fun paddingTop() = 8.sdp
@@ -38,9 +36,6 @@ fun paddingRoundMini() = 8.sdp
 
 @Composable
 fun sizeRound() = 5.sdp
-
-@Composable
-fun sizeRoundBottomSheet() = 15.sdp
 
 @Composable
 fun sizeRoundMax() = 100.sdp
