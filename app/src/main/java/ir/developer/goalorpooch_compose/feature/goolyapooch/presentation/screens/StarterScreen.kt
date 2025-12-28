@@ -84,7 +84,12 @@ fun StarterScreen(
             when (effect) {
                 is StarterEffect.NavigateBack -> navController.popBackStack()
                 is StarterEffect.NavigateToCardSelection -> {
-                    navController.navigate(Routes.getCardSelectionRoute(effect.teamId))
+                    navController.navigate(
+                        Routes.getCardSelectionRoute(
+                            currentTeamId = effect.teamId,
+                            starterTeamId = effect.teamId
+                        )
+                    )
                 }
             }
         }

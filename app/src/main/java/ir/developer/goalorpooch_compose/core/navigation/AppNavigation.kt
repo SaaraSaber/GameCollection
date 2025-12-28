@@ -32,6 +32,7 @@ fun AppNavigation() {
         composable(
             route = Routes.GOOLYAPOOCH_CARD_SELECTION,
             arguments = listOf(
+                navArgument("currentTeamId") { type = NavType.IntType },
                 navArgument("starterTeamId") { type = NavType.IntType }
             )
         ) { backStackEntry ->

@@ -30,8 +30,8 @@ class CardSelectionViewModel @Inject constructor(
     private val _effect = MutableSharedFlow<CardSelectionEffect>()
     val effect = _effect.asSharedFlow()
 
+    private val currentTeamId = savedStateHandle.get<Int>("currentTeamId") ?: 0
     private val starterTeamId = savedStateHandle.get<Int>("starterTeamId") ?: 0
-    private val currentTeamId = starterTeamId
 
     init {
         loadData()

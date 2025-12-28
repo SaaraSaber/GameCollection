@@ -1,4 +1,4 @@
-package ir.developer.goalorpooch_compose.feature.goolyapooch.data.repositoryimpl
+package ir.developer.goalorpooch_compose.feature.goolyapooch.data.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences

@@ -16,7 +16,7 @@ data class CardSelectionState(
 sealed interface CardSelectionIntent {
     data class OnCardClicked(val cardId: Int) : CardSelectionIntent
     data object OnConfirmClicked : CardSelectionIntent
-    data object OnExitConfirmed : CardSelectionIntent    // بله، خارج شو
+    data object OnExitConfirmed : CardSelectionIntent
     data object OnExitDismissed : CardSelectionIntent
     data object OnBackClicked : CardSelectionIntent
 }
