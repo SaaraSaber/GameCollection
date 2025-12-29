@@ -2,6 +2,7 @@ package ir.developer.goalorpooch_compose.feature.goolyapooch.data.repository
 
 import ir.developer.goalorpooch_compose.R
 import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.models.GameCardModel
+import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.models.TeamModel
 import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.repository.GameSessionRepository
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StarterTeam
 import javax.inject.Inject
@@ -12,6 +13,9 @@ class GameSessionRepositoryImpl @Inject constructor() : GameSessionRepository {
 
     private val team1Cards = mutableListOf<GameCardModel>()
     private val team2Cards = mutableListOf<GameCardModel>()
+
+    private var team1 = TeamModel(id = 0, name = "تیم اول")
+    private var team2 = TeamModel(id = 1, name = "تیم دوم")
 
     override fun getAllCards(): List<GameCardModel> {
         return listOf(
@@ -93,5 +97,15 @@ class GameSessionRepositoryImpl @Inject constructor() : GameSessionRepository {
     override fun clearSession() {
         team1Cards.clear()
         team2Cards.clear()
+        team1 = TeamModel(id = 0, name = "تیم اول")
+        team2 = TeamModel(id = 1, name = "تیم دوم")
+    }
+
+    override fun getTeam(teamId: Int): TeamModel {
+        return if (teamId == 0) team1 else team2
+    }
+
+    override fun updateTeam(team: TeamModel) {
+        if (team.id == 0) team1 = team else team2 = team
     }
 }
