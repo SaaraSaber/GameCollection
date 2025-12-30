@@ -18,7 +18,13 @@ sealed interface StartGameIntent {
     data class OnOpeningDuelWinner(val teamId: Int) : StartGameIntent
     data class OnRoundResult(val winnerTeamId: Int?) : StartGameIntent // null = پوچ/مساوی
     data class OnShahGoalResult(val isGoalFound: Boolean) : StartGameIntent // true = گل لو رفت
+    data class OnOpenCardsDialog(val teamId: Int) : StartGameIntent
 
+    // ✅ کلیک روی کارت (فقط انتخاب، نه حذف)
+    data class OnCardSelectedInDialog(val cardId: Int) : StartGameIntent
+
+    // ✅ کلیک روی دکمه تایید نهایی
+    data object OnConfirmCardUsage : StartGameIntent
     // آیتم‌ها
     data object OnEmptyHandClicked : StartGameIntent
     data object OnCardsItemClicked : StartGameIntent
@@ -32,7 +38,7 @@ data class StartGameState(
     // وضعیت تیم‌ها (امتیاز، نوبت، کارت‌ها و...)
     val team1: TeamModel = TeamModel(id = 0, name = "تیم اول"),
     val team2: TeamModel = TeamModel(id = 1, name = "تیم دوم"),
-
+    val selectedCardId: Int? = null,
     val timerValue: Int = 90, // ثانیه
     val isTimerRunning: Boolean = false,
     val isShahGoalMode: Boolean = false, // آیا در حالت شاه‌گل هستیم؟
@@ -65,7 +71,8 @@ sealed interface GameDialogState {
     data object ShahGoalResult : GameDialogState // نتیجه شاه گل
     data object Winner : GameDialogState // برنده نهایی
     data object DuelResult : GameDialogState // نتیجه دوئل (اگر مد دوئل فعال شد)
-    data object Cards : GameDialogState // لیست کارت‌ها
+    data class Cards(val teamId: Int) : GameDialogState // لیست کارت‌ها
+    data object Card : GameDialogState // لیست کارت‌ها
     data object Cube : GameDialogState // انتخاب مکعب
     data class ConfirmCube(val number: Int) : GameDialogState // تایید مکعب
 }

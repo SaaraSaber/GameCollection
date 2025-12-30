@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.CardSelectionScreen
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.DisplayCardScreen
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.SettingScreen
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.StartGameScreen
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screens.StarterScreen
 import ir.developer.goalorpooch_compose.feature.home.presentation.screen.HomeScreen
 
@@ -47,6 +48,9 @@ fun AppNavigation() {
             )
         ) { backStackEntry ->
             DisplayCardScreen(navController = navController)
+        }
+        composable(route = Routes.GOOLYAPOOCH_START_GAME) {
+            StartGameScreen(navController = navController)
         }
     }
 }
