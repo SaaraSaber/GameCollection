@@ -25,6 +25,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GameCollection2"
+rootProject.name = "GameCollection"
 include(":app")
  

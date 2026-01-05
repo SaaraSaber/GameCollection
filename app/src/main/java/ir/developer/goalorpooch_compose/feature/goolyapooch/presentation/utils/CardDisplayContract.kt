@@ -22,6 +22,6 @@ sealed interface CardDisplayEffect {
     data class NavigateToNextTeamSelection(val nextTeamId: Int, val starterTeamId: Int) :
         CardDisplayEffect
 
-    data object NavigateToMainGame : CardDisplayEffect
+    data class NavigateToMainGame(val starterTeamId: Int) : CardDisplayEffect
     data object NavigateToHome : CardDisplayEffect
 }

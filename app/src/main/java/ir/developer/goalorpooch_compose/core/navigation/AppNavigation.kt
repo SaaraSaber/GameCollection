@@ -49,7 +49,12 @@ fun AppNavigation() {
         ) { backStackEntry ->
             DisplayCardScreen(navController = navController)
         }
-        composable(route = Routes.GOOLYAPOOCH_START_GAME) {
+        composable(
+            route = Routes.GOOLYAPOOCH_START_GAME,
+            arguments = listOf(
+                navArgument("starterTeamId") { type = NavType.IntType } // 👈 باید بگی منتظر عدد باش
+            )
+        ) {
             StartGameScreen(navController = navController)
         }
     }

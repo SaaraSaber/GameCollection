@@ -10,8 +10,10 @@ object Routes {
     fun getCardDisplayRoute(currentTeamId: Int, starterTeamId: Int): String {
         return "card_display_screen/$currentTeamId/$starterTeamId"
     }
-    const val GOOLYAPOOCH_CARD_DISPLAY = "card_display_screen/{starterTeamId}"
-    const val GOOLYAPOOCH_START_GAME = "start_game"
+    const val GOOLYAPOOCH_START_GAME = "start_game_screen/{starterTeamId}"
+    fun getStartGameRoute(starterTeamId: Int): String{
+        return "start_game_screen/$starterTeamId"
+    }
 
 
     const val MAFIA = "mafia_screen"

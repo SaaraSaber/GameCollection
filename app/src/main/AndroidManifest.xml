@@ -11,7 +11,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GameCollection2">
+        android:theme="@style/Theme.GameCollection">
 
         <meta-data android:name="io.sentry.dsn" android:value="https://3b87876bdc8c3467c13e1dc9c2e7c6eb@sentry.hamravesh.com/8038" />
 
@@ -29,7 +29,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.GameCollection2">
+            android:theme="@style/Theme.GameCollection">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

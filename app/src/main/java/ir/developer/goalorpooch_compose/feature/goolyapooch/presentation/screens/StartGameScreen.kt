@@ -27,6 +27,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import ir.developer.goalorpooch_compose.R
@@ -72,8 +74,16 @@ import ir.developer.goalorpooch_compose.core.theme.sizeRound
 import ir.developer.goalorpooch_compose.core.theme.sizeRoundBottomSheet
 import ir.developer.goalorpooch_compose.core.theme.titleSize
 import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.models.TeamModel
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.BottomSheetCards
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.BottomSheetConfirmCube
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.BottomSheetContactResultDuel
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.BottomSheetCube
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.BottomSheetOpeningDuel
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.BottomSheetResultOfThisRound
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.BottomSheetResultShahGoal
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.BottomSheetWinner
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.CustomToast
-import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.OpeningDuelOfTheGameDialog
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components.FinishGameDialog
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.GameDialogState
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StartGameEffect
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StartGameIntent
@@ -94,7 +104,9 @@ fun StartGameScreen(
     val state by viewModel.state.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val sheetStateValueChane =
-        rememberModalBottomSheetState(skipPartiallyExpanded = true, confirmValueChange = { false })
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+            confirmValueChange = { it != sheetStateValueChane.Hidden })
     val scope = rememberCoroutineScope()
 
     BackHandler {
@@ -254,32 +266,215 @@ fun StartGameScreen(
                         containerColor = FenceGreen
                     ) {
                         when (val dialog = state.activeDialog) {
-                            GameDialogState.Card -> TODO()
-                            is GameDialogState.Cards -> TODO()
-                            is GameDialogState.ConfirmCube -> TODO()
-                            GameDialogState.Cube -> TODO()
-                            GameDialogState.DuelResult -> TODO()
-                            GameDialogState.ExitGame -> TODO()
-                            GameDialogState.None -> TODO()
-                            GameDialogState.OpeningDuel -> {
-                                OpeningDuelOfTheGameDialog(
-                                    whichTeamHasGoal = 0,
-                                    onClickItem = { winnerId ->
+                            is GameDialogState.Cards -> {
+                                val hasGoalTeamId = if (state.team1.hasGoal) 0 else 1
+
+                                // ۲. انتخاب تیم "هدف" (تیمی که کارت‌هاش نمایش داده میشه)
+                                val targetTeam =
+                                    if (hasGoalTeamId == 0) state.team2 else state.team1
+
+                                // ۳. فیلتر کردن کارت‌های غیرفعال (اگر منطق disable دارید)
+                                // نکته: در مدل جدید ما کارت‌ها رو کلا از لیست حذف میکنیم، پس همون لیست cards کافیه
+                                val cardsToShow = targetTeam.cards
+
+                                BottomSheetCards(
+                                    availableCards = cardsToShow,
+                                    isTargetTeamOne = (targetTeam.id == 0), // آیا کارت‌های تیم ۱ رو نشون میدیم؟
+                                    onDismiss = {
+                                        viewModel.handleIntent(StartGameIntent.OnDismissDialog)
+                                    },
+                                    onConfirm = { cardId ->
                                         scope.launch { sheetState.hide() }.invokeOnCompletion {
                                             viewModel.handleIntent(
-                                                StartGameIntent.OnOpeningDuelWinner(
-                                                    winnerId
+                                                StartGameIntent.OnCardSelected(
+                                                    cardId
                                                 )
                                             )
+                                            viewModel.handleIntent(
+                                                StartGameIntent.OnCardSelectedInDialog(
+                                                    cardId
+                                                )
+                                            )
+                                            viewModel.handleIntent(StartGameIntent.OnConfirmCardUsage)
                                         }
-                                    },
-//                                    onDismissRequest = {}
+                                    }
                                 )
                             }
 
-                            GameDialogState.RoundResult -> TODO()
-                            GameDialogState.ShahGoalResult -> TODO()
-                            GameDialogState.Winner -> TODO()
+                            is GameDialogState.ConfirmCube -> {
+                                val score =
+                                    (state.activeDialog as GameDialogState.ConfirmCube).number
+
+                                // ۲. تشخیص تیم درخواست‌کننده (تیمی که گل دارد)
+                                val isTeamOneHolder = state.team1.hasGoal
+
+                                BottomSheetConfirmCube(
+                                    isRequestingTeamOne = isTeamOneHolder,
+                                    score = score,
+                                    onConfirm = {
+                                        // بستن شیت و اعمال تغییرات در ویومدل
+                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            viewModel.handleIntent(StartGameIntent.OnCubeConfirmed)
+                                        }
+                                    },
+                                    onDismiss = {
+                                        // کنسل کردن (بستن دیالوگ بدون تغییر)
+                                        viewModel.handleIntent(StartGameIntent.OnDismissDialog)
+                                    }
+                                )
+                            }
+
+                            GameDialogState.Cube -> {
+                                val isTeamOneHavingGoal = state.team1.hasGoal
+
+                                BottomSheetCube(
+                                    isTeamOne = isTeamOneHavingGoal,
+                                    onDismiss = {
+                                        viewModel.handleIntent(StartGameIntent.OnDismissDialog)
+                                    },
+                                    onConfirm = { selectedScore ->
+                                        // بستن شیت فعلی و رفتن به مرحله بعد (تاییدیه)
+                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            viewModel.handleIntent(
+                                                StartGameIntent.OnCubeNumberSelected(
+                                                    selectedScore
+                                                )
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+
+                            GameDialogState.DuelResult -> {
+                                val isTeamOneHolder = state.team1.hasGoal
+
+                                BottomSheetContactResultDuel(
+                                    isTeamOneHolder = isTeamOneHolder,
+                                    onResult = { result ->
+                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            viewModel.handleIntent(
+                                                StartGameIntent.OnDuelResult(
+                                                    result
+                                                )
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+
+                            GameDialogState.ExitGame -> {
+                                ModalBottomSheet(
+                                    onDismissRequest = { viewModel.handleIntent(StartGameIntent.OnDismissDialog) },
+                                    sheetState = sheetState,
+                                    shape = RoundedCornerShape(
+                                        topEnd = sizeRoundBottomSheet(),
+                                        topStart = sizeRoundBottomSheet()
+                                    ),
+                                    containerColor = FenceGreen
+                                ) {
+                                    FinishGameDialog(
+                                        onClickExit = {
+                                            scope.launch { sheetState.hide() }
+                                                .invokeOnCompletion {
+                                                    viewModel.handleIntent(
+                                                        StartGameIntent.OnDismissDialog
+                                                    )
+                                                }
+                                            viewModel.handleIntent(StartGameIntent.OnExitConfirmed)
+                                        },
+                                        onClickContinueGame = {
+                                            scope.launch { sheetState.hide() }
+                                                .invokeOnCompletion {
+                                                    viewModel.handleIntent(
+                                                        StartGameIntent.OnDismissDialog
+                                                    )
+                                                }
+                                        }
+                                    )
+                                }
+                            }
+
+                            GameDialogState.None -> {}
+                            GameDialogState.OpeningDuel -> {
+                                ModalBottomSheet(
+                                    onDismissRequest = {},
+                                    sheetState = sheetStateValueChane,
+                                    properties = ModalBottomSheetProperties(
+                                        shouldDismissOnBackPress = false,
+                                        securePolicy = SecureFlagPolicy.Inherit
+                                    ),
+                                    shape = RoundedCornerShape(
+                                        topEnd = sizeRoundBottomSheet(),
+                                        topStart = sizeRoundBottomSheet()
+                                    ), containerColor = FenceGreen, dragHandle = null
+                                ) {
+                                    BottomSheetOpeningDuel(
+                                        starterTeamId = state.starterTeamId,
+                                        onWinnerSelected = { winnerId ->
+                                            // بستن شیت و ارسال برنده به ویومدل
+                                            scope.launch { sheetStateValueChane.hide() }
+                                                .invokeOnCompletion {
+                                                    if (!sheetStateValueChane.isVisible) {
+                                                        viewModel.handleIntent(
+                                                            StartGameIntent.OnOpeningDuelWinner(
+                                                                winnerId
+                                                            )
+                                                        )
+                                                    }
+                                                }
+                                        })
+                                }
+                            }
+
+                            GameDialogState.RoundResult -> {
+                                BottomSheetResultOfThisRound(
+                                    isTeamOneHavingGoal = state.team1.hasGoal, // تشخیص اینکه متن برای کدوم تیم باشه
+                                    onResultClicked = { outcome ->
+                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            // منطق کامل رو سپردیم به ویومدل
+                                            viewModel.handleIntent(
+                                                StartGameIntent.OnRoundResult(
+                                                    outcome
+                                                )
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+
+                            GameDialogState.ShahGoalResult -> {
+                                val isTeamOnHavingGoal = state.team1.hasGoal
+                                BottomSheetResultShahGoal(
+                                    isTeamOne = isTeamOnHavingGoal,
+                                    onResult = { isGoalFound ->
+                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            viewModel.handleIntent(
+                                                StartGameIntent.OnShahGoalResult(
+                                                    isGoalFound
+                                                )
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+
+                            GameDialogState.Winner -> {
+                                val isTeamOneWinner = state.team1.score > state.team2.score
+
+                                BottomSheetWinner(
+                                    isTeamOneWinner = isTeamOneWinner,
+                                    onClickRepeatGame = {
+                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            viewModel.handleIntent(StartGameIntent.OnRepeatGame)
+                                        }
+                                    },
+                                    onClickExit = {
+                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            viewModel.handleIntent(StartGameIntent.OnExitConfirmed)
+                                        }
+                                    }
+                                )
+                            }
                         }
 
                     }
@@ -311,7 +506,6 @@ fun TeamInfoSection(
     onIntent: (StartGameIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     Row(
         modifier = modifier.padding(
             top = paddingTopMedium(),

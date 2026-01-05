@@ -84,7 +84,7 @@ class CardDisplayViewModel @Inject constructor(
             val nextTeamId = if (starterTeamId == 0) 1 else 0
             sendEffect(CardDisplayEffect.NavigateToNextTeamSelection(nextTeamId, starterTeamId))
         } else {
-            sendEffect(CardDisplayEffect.NavigateToMainGame)
+            sendEffect(CardDisplayEffect.NavigateToMainGame(starterTeamId))
         }
     }
 

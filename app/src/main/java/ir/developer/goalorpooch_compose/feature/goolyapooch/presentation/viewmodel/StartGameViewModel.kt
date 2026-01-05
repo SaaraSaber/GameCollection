@@ -1,5 +1,6 @@
 package ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,8 +9,11 @@ import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.models.GameCo
 import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.models.TeamModel
 import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.repository.GameSessionRepository
 import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.repository.SettingRepository
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.DuelResult
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.GameDialogState
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.GameDialogState.Cards
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.GameDialogState.ConfirmCube
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.RoundOutcome
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StartGameEffect
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StartGameIntent
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StartGameState
@@ -28,7 +32,8 @@ import javax.inject.Inject
 @HiltViewModel
 class StartGameViewModel @Inject constructor(
     private val settingRepo: SettingRepository,
-    private val sessionRepo: GameSessionRepository
+    private val sessionRepo: GameSessionRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(StartGameState())
     val state = _state.asStateFlow()
@@ -38,6 +43,8 @@ class StartGameViewModel @Inject constructor(
 
     private var timerJob: Job? = null
     private var gameConfig: GameConfig? = null
+
+    private val starterIdArg = savedStateHandle.get<Int>("starterTeamId") ?: 0
 
     init {
         loadInitialData()
@@ -56,7 +63,8 @@ class StartGameViewModel @Inject constructor(
                     team1 = t1,
                     team2 = t2,
                     timerValue = config.goalTime,
-                    emptyHandCount = 3
+                    emptyHandCount = 3,
+                    starterTeamId = starterIdArg
                 )
             }
         }
@@ -66,7 +74,17 @@ class StartGameViewModel @Inject constructor(
         when (intent) {
             StartGameIntent.OnBackClicked -> setDialog(GameDialogState.ExitGame)
             is StartGameIntent.OnCardSelected -> disableCard(intent.cardId)
-            is StartGameIntent.OnCardsItemClicked -> setDialog(GameDialogState.Card)
+            is StartGameIntent.OnCardsItemClicked -> {
+                // ۱. پیدا کردن تیمی که گل دستش هست (استفاده‌کننده آیتم)
+                val currentTeamHasGoal = if (_state.value.team1.hasGoal) 0 else 1
+
+                // ۲. پیدا کردن تیم حریف (تیمی که قراره کارتشون رو ببینیم و حذف کنیم)
+                val targetTeamId = if (currentTeamHasGoal == 0) 1 else 0
+
+                // ۳. باز کردن دیالوگ با آیدی تیم حریف
+                setDialog(Cards(targetTeamId))
+            }
+
             StartGameIntent.OnCubeConfirmed -> handleCubeConfirm()
             StartGameIntent.OnCubeItemClicked -> setDialog(GameDialogState.Cube)
             is StartGameIntent.OnCubeNumberSelected -> setDialog(ConfirmCube(intent.number))
@@ -83,7 +101,7 @@ class StartGameViewModel @Inject constructor(
                 sendEffect(StartGameEffect.NavigateToSetting)
             }
 
-            is StartGameIntent.OnRoundResult -> handleRoundResult(intent.winnerTeamId)
+            is StartGameIntent.OnRoundResult -> handleRoundResult(intent.outcome)
             is StartGameIntent.OnShahGoalResult -> handleShahGoal(intent.isGoalFound)
             StartGameIntent.OnTimerToggleClicked -> toggleTimer()
             is StartGameIntent.OnCardSelectedInDialog -> {
@@ -91,17 +109,26 @@ class StartGameViewModel @Inject constructor(
                     it.copy(selectedCardId = intent.cardId)
                 }
             }
+
+            is StartGameIntent.OnBurnCard -> {
+                _state.update { it.copy(selectedCardId = intent.cardId) } // موقت ست میکنیم
+                burnSelectedCard() // تابع حذف رو صدا میزنیم
+            }
+
             StartGameIntent.OnConfirmCardUsage -> {
                 burnSelectedCard()
             }
+
             is StartGameIntent.OnOpenCardsDialog -> {
                 _state.update {
                     it.copy(
-                        activeDialog = GameDialogState.Cards(intent.teamId),
+                        activeDialog = Cards(intent.teamId),
                         selectedCardId = null // ریست کردن انتخاب قبلی
                     )
                 }
             }
+
+            is StartGameIntent.OnDuelResult -> handleDuelResult(intent.result)
         }
     }
 
@@ -223,26 +250,50 @@ class StartGameViewModel @Inject constructor(
      * نتیجه هر دور بازی (عادی)
      * @param winnerTeamId: تیمی که امتیاز گرفته (null یعنی پوچ/مساوی)
      */
-    private fun handleRoundResult(winnerTeamId: Int?) {
-        val config = gameConfig ?: return
+    private fun handleRoundResult(outcome: RoundOutcome) {
         updateTeamsStateAndRepo { t1, t2 ->
-            var newT1 = t1
-            var newT2 = t2
-            if (winnerTeamId != null) {
-                if (winnerTeamId == 0) {
-                    newT1 = newT1.copy(score = newT1.score + 1, hasGoal = true)
-                    newT2 = newT2.copy(hasGoal = false)
-                } else {
-                    newT2 = newT2.copy(score = newT2.score + 1, hasGoal = true)
-                    newT1 = newT1.copy(hasGoal = false)
+            // ۱. تشخیص تیم صاحب گل (Holder) و حریف (Opponent)
+            val holder = if (t1.hasGoal) t1 else t2
+            val opponent = if (t1.hasGoal) t2 else t1
+
+            var newHolder = holder
+            var newOpponent = opponent
+            val multiplier = holder.selectedCubeValue
+
+            when (outcome) {
+                RoundOutcome.TECHNICAL_WIN -> {
+                    // گزینه ۱ (کاپ): ۲ امتیاز (یا مکعب) میگیره و گل رو نگه میداره
+                    val score = if (multiplier > 1) multiplier else 2
+                    newHolder = holder.copy(score = holder.score + score)
                 }
-            } else {
-                // حالت پوچ/جابجایی گل (اختیاری: طبق قانون بازی خودت تنظیم کن)
-                // فرض: گل جابجا میشه ولی امتیاز نمیدن
+
+                RoundOutcome.SIMPLE_WIN -> {
+                    // برد ساده: امتیاز نمیگیره مگه اینکه مکعب زده باشه
+                    if (multiplier > 1) {
+                        newHolder = holder.copy(score = holder.score + multiplier)
+                    }
+                }
+
+                RoundOutcome.LOSS -> {
+                    // باخت: حریف امتیاز میگیره (1 * ضریب مکعب)
+                    val scoreForOpponent = 1 * multiplier // اگه مکعب 4 باشه، حریف 4 امتیاز میگیره
+
+                    newHolder = holder.copy(hasGoal = false)
+                    newOpponent = opponent.copy(
+                        hasGoal = true,
+                        score = opponent.score + scoreForOpponent
+                    )
+                }
             }
-            Pair(newT1, newT2)
+
+            // ۳. ریست کردن وضعیت مکعب برای دور بعد (طبق کد قبلی)
+            newHolder = newHolder.copy(selectedCubeValue = 1)
+            newOpponent = newOpponent.copy(selectedCubeValue = 1)
+
+            // ۴. برگرداندن تیم‌های آپدیت شده در جایگاه درست (t1, t2)
+            if (newHolder.id == 0) Pair(newHolder, newOpponent) else Pair(newOpponent, newHolder)
         }
-        checkGameStatus(config)
+        setDialog(GameDialogState.None)
     }
 
     /**
@@ -282,9 +333,17 @@ class StartGameViewModel @Inject constructor(
      * تعیین برنده دوئل اول بازی (مشخص شدن صاحب گل)
      */
     private fun handleOpeningDuel(winnerTeamId: Int) {
-        updateTeamsStateAndRepo { currentT1, currentT2 ->
-            val newT1 = currentT1.copy(hasGoal = winnerTeamId == 1)
-            val newT2 = currentT2.copy(hasGoal = winnerTeamId == 2)
+        updateTeamsStateAndRepo { t1, t2 ->
+            val newT1: TeamModel
+            val newT2: TeamModel
+
+            if (winnerTeamId == 0) {
+                newT1 = t1.copy(hasGoal = true)
+                newT2 = t2.copy(hasGoal = false)
+            } else {
+                newT1 = t1.copy(hasGoal = false)
+                newT2 = t2.copy(hasGoal = true)
+            }
             Pair(newT1, newT2)
         }
         setDialog(GameDialogState.None)
@@ -299,6 +358,41 @@ class StartGameViewModel @Inject constructor(
             sessionRepo.updateTeam(newT2)
             current.copy(team1 = newT1, team2 = newT2)
         }
+    }
+
+    private fun handleDuelResult(result: DuelResult) {
+        updateTeamsStateAndRepo { t1, t2 ->
+            // پیدا کردن تیمی که گل داره (صاحب دوئل)
+            val holder = if (t1.hasGoal) t1 else t2
+            val opponent = if (t1.hasGoal) t2 else t1
+
+            var newHolder = holder
+            var newOpponent = opponent
+
+            when (result) {
+                DuelResult.KEPT_GOAL -> {
+                    // موفقیت: گل رو حفظ کرده -> gotGoalDuel زیاد میشه
+                    // گل دست خودش میمونه (تغییری در hasGoal نداریم)
+                    newHolder = holder.copy(
+                        gotGoalDuel = holder.gotGoalDuel + 1
+                    )
+                }
+
+                DuelResult.LOST_GOAL -> {
+                    // شکست: گل رو از دست داده -> notGotGoalDuel زیاد میشه
+                    // گل میره تیم حریف
+                    newHolder = holder.copy(
+                        hasGoal = false,
+                        notGotGoalDuel = holder.notGotGoalDuel + 1
+                    )
+                    newOpponent = opponent.copy(hasGoal = true)
+                }
+            }
+
+            if (newHolder.id == 0) Pair(newHolder, newOpponent) else Pair(newOpponent, newHolder)
+        }
+
+        setDialog(GameDialogState.None)
     }
 
     private fun useEmptyHand() {
@@ -321,13 +415,25 @@ class StartGameViewModel @Inject constructor(
     }
 
     private fun handleCubeConfirm() {
-        // منطق کم کردن تعداد مکعب و ...
-        val currentDialog = _state.value.activeDialog
-        if (currentDialog is GameDialogState.ConfirmCube) {
-            val number = currentDialog.number
-            // آپدیت تیم...
+        val selectedValue =
+            (_state.value.activeDialog as? GameDialogState.ConfirmCube)?.number ?: return
+
+        updateTeamsStateAndRepo { t1, t2 ->
+            // پیدا کردن تیمی که گل داره (چون فقط اون میتونه مکعب بزنه)
+            val holder = if (t1.hasGoal) t1 else t2
+
+            // آپدیت تیم: کم کردن تعداد مکعب و ست کردن امتیاز این دور
+            val newHolder = holder.copy(
+                numberCubes = holder.numberCubes - 1,
+                selectedCubeValue = selectedValue // ✅ ذخیره 2, 4 یا 6
+            )
+
+            if (newHolder.id == 0) Pair(newHolder, t2) else Pair(t1, newHolder)
         }
+
+        // بستن دیالوگ و نمایش پیام موفقیت
         setDialog(GameDialogState.None)
+        showToast("امتیاز این دور ${selectedValue} برابر شد", ToastType.SUCCESS)
     }
 
     private fun disableCard(cardId: Int) {
@@ -354,6 +460,7 @@ class StartGameViewModel @Inject constructor(
             _state.update { it.copy(toastMessage = null) }
         }
     }
+
     private fun setDialog(dialog: GameDialogState) {
         _state.update { it.copy(activeDialog = dialog) }
     }

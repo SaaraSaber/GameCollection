@@ -1,5 +1,6 @@
 package ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.components
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,15 +60,20 @@ import ir.developer.goalorpooch_compose.core.theme.sizePicMedium
 import ir.developer.goalorpooch_compose.core.theme.sizePicSmall
 import ir.developer.goalorpooch_compose.core.theme.sizeRound
 import ir.developer.goalorpooch_compose.core.theme.titleSize
+import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.models.GameCardModel
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.DuelResult
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.RoundOutcome
 import ir.kaaveh.sdpcompose.sdp
 
 @Composable
-fun OpeningDuelOfTheGameDialog(
+fun BottomSheetOpeningDuel(
     modifier: Modifier = Modifier,
-    whichTeamHasGoal: Int,
-    onClickItem: (Int) -> Unit,
-//    onDismissRequest: () -> Unit // مدیریت بسته شدن Bottom Sheet
+    starterTeamId: Int,
+    onWinnerSelected: (Int) -> Unit,
+//    onDismissRequest: () -> Unit
 ) {
+    val isTeamOneStarter = starterTeamId == 0
+    val opponentTeamId = if (isTeamOneStarter) 1 else 0
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
             modifier = modifier
@@ -101,93 +108,84 @@ fun OpeningDuelOfTheGameDialog(
                 fontSize = descriptionSize(),
                 textAlign = TextAlign.Justify
             )
-            Row(
-                modifier = modifier
-                    .padding(bottom = 8.sdp)
-                    .border(1.sdp, Color.White, RoundedCornerShape(sizeRound()))
-                    .clip(RoundedCornerShape(sizeRound()))
-                    .fillMaxWidth()
-                    .clickable {
-                        if (whichTeamHasGoal == 0) {
-                            onClickItem(0)
-                        } else {
-                            onClickItem(1)
-                        }
-//                        onDismissRequest()
-                    },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    modifier = Modifier
-                        .padding(paddingRound())
-                        .size(sizePicMedium()),
-                    painter = if (whichTeamHasGoal == 0)
-                        painterResource(id = R.drawable.pic_team_one)
-                    else
-                        painterResource(R.drawable.pic_team_two),
-                    contentDescription = null
-                )
+            OpeningDuelItem(
+                image = if (isTeamOneStarter) R.drawable.pic_team_one else R.drawable.pic_team_two,
+                text = if (isTeamOneStarter)
+                    stringResource(R.string.first_team_kept_goal_)
+                else
+                    stringResource(R.string.second_team_kept_goal_),
+                onClick = {
+                    // اگر حفظ کرد، یعنی برنده همون تیم شروع‌کننده است
+                    onWinnerSelected(starterTeamId)
+//                    onDismissRequest()
+                }
+            )
 
-                Text(
-                    text = if (whichTeamHasGoal == 0)
-                        stringResource(R.string.first_team_kept_goal_)
-                    else
-                        stringResource(R.string.second_team_kept_goal_),
-                    fontSize = descriptionSize(),
-                    fontFamily = FontPeydaMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Justify
-                )
-            }
+            Spacer(modifier = Modifier.height(8.sdp))
 
-            Row(
-                modifier = modifier
-                    .border(1.sdp, Color.White, RoundedCornerShape(sizeRound()))
-                    .clip(RoundedCornerShape(sizeRound()))
-                    .fillMaxWidth()
-                    .clickable {
-                        if (whichTeamHasGoal == 0) {
-                            onClickItem(1)
-                        } else {
-                            onClickItem(0)
-                        }
-//                        onDismissRequest()
-                    },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    modifier = Modifier
-                        .padding(paddingRound())
-                        .size(sizePicMedium()),
-                    painter = if (whichTeamHasGoal == 0)
-                        painterResource(id = R.drawable.pic_team_two)
-                    else
-                        painterResource(R.drawable.pic_team_one),
-                    contentDescription = null
-                )
-                Text(
-                    text = if (whichTeamHasGoal == 0)
-                        stringResource(R.string.second_team_scored)
-                    else
-                        stringResource(R.string.first_team_scored),
-                    fontSize = descriptionSize(),
-                    fontFamily = FontPeydaMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Justify
-                )
-            }
+            // --- گزینه ۲: حریف گل را گرفت ---
+            OpeningDuelItem(
+                image = if (isTeamOneStarter) R.drawable.pic_team_two else R.drawable.pic_team_one,
+                text = if (isTeamOneStarter)
+                    stringResource(R.string.second_team_scored) // تیم دوم گرفت
+                else
+                    stringResource(R.string.first_team_scored), // تیم اول گرفت
+                onClick = {
+                    // اگر گل گرفته شد، یعنی برنده تیم حریف است
+                    onWinnerSelected(opponentTeamId)
+//                    onDismissRequest()
+                }
+            )
         }
     }
+}
 
+@Composable
+fun OpeningDuelItem(
+    @DrawableRes image: Int,
+    text: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(sizeRound()))
+            .border(1.sdp, Color.White, RoundedCornerShape(sizeRound()))
+            .clickable { onClick() }
+            .padding(vertical = 8.sdp, horizontal = paddingRound()),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            modifier = Modifier.size(sizePicMedium()),
+            painter = painterResource(id = image),
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.width(8.sdp))
+
+        Text(
+            text = text,
+            fontSize = descriptionSize(),
+            fontFamily = FontPeydaMedium,
+            color = Color.White,
+            textAlign = TextAlign.Justify
+        )
+    }
 }
 
 @Composable
 fun BottomSheetWinner(
     modifier: Modifier = Modifier,
-    whichTeamHasGoal: Int,
+    isTeamOneWinner: Boolean,
     onClickExit: () -> Unit,
     onClickRepeatGame: () -> Unit
 ) {
+    val winnerImage = if (isTeamOneWinner) R.drawable.pic_team_one else R.drawable.pic_team_two
+    val winnerDescription = if (isTeamOneWinner)
+        R.string.description_final_game_team_one
+    else
+        R.string.description_final_game_team_two
+
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
             modifier = modifier
@@ -213,15 +211,13 @@ fun BottomSheetWinner(
                 modifier = modifier
                     .padding(paddingTopMedium())
                     .size(sizePicLarge()),
-                painter = if (whichTeamHasGoal == 0) painterResource(R.drawable.pic_team_one)
-                else painterResource(R.drawable.pic_team_two),
+                painter = painterResource(winnerImage),
                 contentDescription = null
             )
 
             Text(
                 modifier = modifier.padding(top = paddingTop(), bottom = paddingTopMedium()),
-                text = if (whichTeamHasGoal == 0) stringResource(R.string.description_final_game_team_one)
-                else stringResource(R.string.description_final_game_team_two),
+                text = stringResource(winnerDescription),
                 color = Color.White,
                 fontFamily = FontPeydaMedium,
                 fontSize = titleSize(),
@@ -271,11 +267,15 @@ fun BottomSheetWinner(
 @Composable
 fun BottomSheetContactResultDuel(
     modifier: Modifier = Modifier,
-    onClickItemUp: (Int) -> Unit,
-    onClickItemDown: (Int) -> Unit,
-    onDismissRequest: () -> Unit, // مدیریت بسته شدن Bottom Sheet
-    whichTeamHasGoal: Int
+    isTeamOneHolder: Boolean, // ✅ تیمی که الان گل دستشه (درگیر دوئل)
+    onResult: (DuelResult) -> Unit
 ) {
+    val teamImage = if (isTeamOneHolder) R.drawable.pic_team_one else R.drawable.pic_team_two
+
+    // تعیین متن‌ها (بهتر است به string.xml ببرید)
+    val textKept = if (isTeamOneHolder) "تیم اول گل را حفظ کرد." else "تیم دوم گل را حفظ کرد."
+    val textLost = if (isTeamOneHolder) "تیم اول گل را از دست داد." else "تیم دوم گل را از دست داد."
+
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
             modifier = modifier
@@ -307,102 +307,67 @@ fun BottomSheetContactResultDuel(
                 )
             )
 
-            Row(
-                modifier = modifier
-                    .padding(bottom = 8.sdp)
-                    .border(1.sdp, Color.White, RoundedCornerShape(sizeRound()))
-                    .clip(RoundedCornerShape(sizeRound()))
-                    .fillMaxWidth()
-                    .clickable {
-                        onClickItemUp(whichTeamHasGoal)
-                        onDismissRequest()
-                    },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    modifier = Modifier
-                        .padding(paddingRound())
-                        .size(sizePicMedium()),
-                    painter = if (whichTeamHasGoal == 0) painterResource(id = R.drawable.pic_team_one)
-                    else painterResource(R.drawable.pic_team_two),
-                    contentDescription = null
-                )
+            DuelOptionItem(
+                text = textKept,
+                image = teamImage,
+                onClick = { onResult(DuelResult.KEPT_GOAL) }
+            )
 
-                Text(
-                    text = if (whichTeamHasGoal == 0) "تیم اول گل را حفظ کرد."
-                    else "تیم دوم گل را حفظ کرد.",
-                    fontSize = descriptionSize(),
-                    fontFamily = FontPeydaMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Justify
-                )
-            }
+            Spacer(modifier = Modifier.height(8.sdp))
 
-            Row(
-                modifier = modifier
-                    .border(1.sdp, Color.White, RoundedCornerShape(sizeRound()))
-                    .clip(RoundedCornerShape(sizeRound()))
-                    .fillMaxWidth()
-                    .clickable {
-                        onClickItemDown(whichTeamHasGoal)
-                        onDismissRequest()
-                    },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    modifier = Modifier
-                        .padding(paddingRound())
-                        .size(sizePicMedium()),
-                    painter = if (whichTeamHasGoal == 0) painterResource(id = R.drawable.pic_team_one)
-                    else painterResource(R.drawable.pic_team_two),
-                    contentDescription = null
-                )
-                Text(
-                    text = if (whichTeamHasGoal == 0) "تیم اول گل را از دست داد." else "تیم دوم گل را از دست داد.",
-                    fontSize = descriptionSize(),
-                    fontFamily = FontPeydaMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Justify
-                )
-            }
+            // --- گزینه ۲: از دست دادن گل (شکست) ---
+            DuelOptionItem(
+                text = textLost,
+                image = teamImage,
+                onClick = { onResult(DuelResult.LOST_GOAL) }
+            )
         }
+    }
+}
+
+@Composable
+fun DuelOptionItem(
+    text: String,
+    @DrawableRes image: Int,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(sizeRound()))
+            .border(1.sdp, Color.White, RoundedCornerShape(sizeRound()))
+            .clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            modifier = Modifier
+                .padding(paddingRound())
+                .size(sizePicMedium()),
+            painter = painterResource(id = image),
+            contentDescription = null
+        )
+
+        Text(
+            text = text,
+            fontSize = descriptionSize(),
+            fontFamily = FontPeydaMedium,
+            color = Color.White,
+            textAlign = TextAlign.Justify
+        )
     }
 }
 
 @Composable
 fun BottomSheetResultShahGoal(
     modifier: Modifier = Modifier,
-    whichTeamResult: Int,
-    onClickItem: (Boolean) -> Unit,
+    isTeamOne: Boolean,
+    onResult: (isGoalFound: Boolean) -> Unit
 ) {
-    val listResult: List<ResultThisRoundModel> =
-        if (whichTeamResult == 0) {
-            listOf(
-                ResultThisRoundModel(
-                    id = 1,
-                    image = R.drawable.tick,
-                    text = stringResource(R.string.first_team_scored_shah_goal)
-                ),
-                ResultThisRoundModel(
-                    id = 0,
-                    image = R.drawable.square_cross,
-                    text = stringResource(R.string.first_team_did_not_scored_shah_goal)
-                )
-            )
-        } else {
-            listOf(
-                ResultThisRoundModel(
-                    id = 0,
-                    image = R.drawable.tick,
-                    text = stringResource(R.string.second_team_scored_shah_goal)
-                ),
-                ResultThisRoundModel(
-                    id = 0,
-                    image = R.drawable.square_cross,
-                    text = stringResource(R.string.second_team_did_not_scored_shah_goal)
-                )
-            )
-        }
+    val successText =
+        if (isTeamOne) R.string.first_team_scored_shah_goal else R.string.second_team_scored_shah_goal
+    val failureText =
+        if (isTeamOne) R.string.first_team_did_not_scored_shah_goal else R.string.second_team_did_not_scored_shah_goal
+
     CompositionLocalProvider(
         LocalLayoutDirection provides LayoutDirection.Rtl
     ) {
@@ -432,13 +397,17 @@ fun BottomSheetResultShahGoal(
                 )
             )
 
-            ItemResult(modifier = modifier,
-                item = listResult[0],
-                onClickItem = { onClickItem(true) }
+            ItemResult(
+                modifier = modifier,
+                icon = R.drawable.tick,
+                text = stringResource(successText),
+                onClick = { onResult(false) }
             )
-            ItemResult(modifier = modifier,
-                item = listResult[1],
-                onClickItem = { onClickItem(false) }
+            ItemResult(
+                modifier = modifier,
+                icon = R.drawable.square_cross,
+                text = stringResource(failureText),
+                onClick = { onResult(true) }
             )
         }
     }
@@ -447,8 +416,9 @@ fun BottomSheetResultShahGoal(
 @Composable
 fun ItemResult(
     modifier: Modifier,
-    item: ResultThisRoundModel,
-    onClickItem: () -> Unit
+    @DrawableRes icon: Int,
+    text: String,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = modifier
@@ -456,19 +426,19 @@ fun ItemResult(
             .border(1.sdp, Color.White, RoundedCornerShape(sizeRound()))
             .clip(RoundedCornerShape(sizeRound()))
             .fillMaxWidth()
-            .clickable { onClickItem() },
+            .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             modifier = Modifier
                 .padding(paddingTopMedium())
                 .size(sizePicSmall()),
-            painter = painterResource(id = item.image),
+            painter = painterResource(id = icon),
             contentDescription = null
         )
 
         Text(
-            text = item.text,
+            text = text,
             fontSize = descriptionSize(),
             fontFamily = FontPeydaMedium,
             color = Color.White,
@@ -480,50 +450,15 @@ fun ItemResult(
 @Composable
 fun BottomSheetResultOfThisRound(
     modifier: Modifier = Modifier,
-    whichTeamResult: Int,
-    onClickItem: (Int) -> Unit,
-    sharedViewModel: SharedViewModel
+    isTeamOneHavingGoal: Boolean,
+    onResultClicked: (RoundOutcome) -> Unit
 ) {
-    val listResult: List<ResultThisRoundModel> =
-        if (whichTeamResult == 0) {
-            listOf(
-                ResultThisRoundModel(
-                    id = 0,
-                    image = R.drawable.cup,
-                    text = stringResource(R.string.first_team_scored_a_single_goal)
-                ),
-                ResultThisRoundModel(
-                    id = 1,
-                    image = R.drawable.tick,
-                    text = stringResource(R.string.first_team_scored)
-                ),
-                ResultThisRoundModel(
-                    id = 0,
-                    image = R.drawable.square_cross,
-                    text = stringResource(R.string.first_team_did_not_score)
-                )
-            )
-        } else {
-            listOf(
-                ResultThisRoundModel(
-                    id = 0,
-                    image = R.drawable.cup,
-                    text = stringResource(R.string.second_team_scored_a_single_goal)
-                ),
-                ResultThisRoundModel(
-                    id = 0,
-                    image = R.drawable.tick,
-                    text = stringResource(R.string.second_team_scored)
-                ),
-                ResultThisRoundModel(
-                    id = 0,
-                    image = R.drawable.square_cross,
-                    text = stringResource(R.string.second_team_did_not_score)
-                )
-            )
-        }
-    val teamInfo = sharedViewModel.getTeam(whichTeamResult)
-//    val teamInfo = if (whichTeamResult == 0) teams[0] else teams[1]
+    val technicalWinText =
+        if (isTeamOneHavingGoal) R.string.first_team_scored_a_single_goal else R.string.second_team_scored_a_single_goal
+    val simpleWinText =
+        if (isTeamOneHavingGoal) R.string.first_team_scored else R.string.second_team_scored
+    val lossText =
+        if (isTeamOneHavingGoal) R.string.first_team_did_not_score else R.string.second_team_did_not_score
 
     CompositionLocalProvider(
         LocalLayoutDirection provides LayoutDirection.Rtl
@@ -546,15 +481,6 @@ fun BottomSheetResultOfThisRound(
                     fontSize = titleSize()
                 )
                 Spacer(modifier = modifier.weight(1f))
-//                IconButton(
-//                    onClick = { onDismiss() }
-//                ) {
-//                    Image(
-//                        painter = painterResource(R.drawable.close_circle),
-//                        contentDescription = "btn_close",
-//                        modifier = modifier.size(20.sdp)
-//                    )
-//                }
             }
             HorizontalDivider(
                 modifier = modifier.padding(
@@ -563,168 +489,34 @@ fun BottomSheetResultOfThisRound(
                 )
             )
 
-            ir.developer.goalorpooch_compose.ui.screen.ItemResult(
+            ItemResult(
                 modifier = modifier,
-                item = listResult[0],
-                onClickItem = {
-                    if (whichTeamResult == 0) {
-                        if (teamInfo!!.selectedCube) {
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateScoreTeam(
-                                teamId = 0,
-                                newScore = Utils.WHICH_SELECT_NUMBER_CUBE
-                            )
+                icon = R.drawable.cup,
+                text = stringResource(technicalWinText),
+                onClick = { onResultClicked(RoundOutcome.TECHNICAL_WIN) }
+            )
 
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = false)
-                            }
-                        } else {
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateScoreTeam(teamId = 0, newScore = 2)
+//            Spacer(modifier = Modifier.height(12.sdp))
 
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = false)
-                            }
-                        }
-                    } else if (whichTeamResult == 1) {
-                        if (teamInfo!!.selectedCube) {
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateScoreTeam(
-                                teamId = 1,
-                                newScore = Utils.WHICH_SELECT_NUMBER_CUBE
-                            )
-
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = false)
-                            }
-                        } else {
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateScoreTeam(teamId = 1, newScore = 2)
-
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = false)
-                            }
-                        }
-                    }
-                    onClickItem(whichTeamResult)
-                    sharedViewModel.updateTeam(teamId = whichTeamResult) {
-                        copy(selectedCube = false)
-                    }
-                })
-            ir.developer.goalorpooch_compose.ui.screen.ItemResult(
+            // --- گزینه ۲: برد ساده/حفظ گل (تیک) ---
+            ItemResult(
                 modifier = modifier,
-                item = listResult[1],
-                onClickItem = {
-                    if (whichTeamResult == 1) {
-                        if (teamInfo!!.selectedCube) {
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = false)
-                            }
-                            sharedViewModel.updateScoreTeam(
-                                teamId = 1,
-                                newScore = Utils.WHICH_SELECT_NUMBER_CUBE
-                            )
-                        } else {
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = false)
-                            }
-                        }
+                icon = R.drawable.tick,
+                text = stringResource(simpleWinText),
+                onClick = { onResultClicked(RoundOutcome.SIMPLE_WIN) }
+            )
 
-                    } else if (whichTeamResult == 0) {
-                        if (teamInfo!!.selectedCube) {
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = false)
-                            }
-                            sharedViewModel.updateScoreTeam(
-                                teamId = 0,
-                                newScore = Utils.WHICH_SELECT_NUMBER_CUBE
-                            )
-                        } else {
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = false)
-                            }
-                        }
-                    }
-                    onClickItem(whichTeamResult)
-                    sharedViewModel.updateTeam(teamId = whichTeamResult) {
-                        copy(selectedCube = false)
-                    }
-                })
-            ir.developer.goalorpooch_compose.ui.screen.ItemResult(
+//            Spacer(modifier = Modifier.height(12.sdp))
+
+            // --- گزینه ۳: باخت/پوچ (ضربدر) ---
+            ItemResult(
                 modifier = modifier,
-                item = listResult[2],
-                onClickItem = {
-                    if (whichTeamResult == 0) {
-                        if (teamInfo!!.selectedCube) {
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = false)
-                            }
-                            sharedViewModel.updateScoreTeam(
-                                teamId = 1,
-                                newScore = Utils.WHICH_SELECT_NUMBER_CUBE
-                            )
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = true)
-                            }
-                        } else {
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = false)
-                            }
-                            sharedViewModel.updateScoreTeam(teamId = 1, newScore = 1)
+                icon = R.drawable.square_cross,
+                text = stringResource(lossText),
+                onClick = { onResultClicked(RoundOutcome.LOSS) }
+            )
 
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = true)
-                            }
-                        }
-                    } else if (whichTeamResult == 1) {
-                        if (teamInfo!!.selectedCube) {
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateScoreTeam(
-                                teamId = 0,
-                                newScore = Utils.WHICH_SELECT_NUMBER_CUBE
-                            )
-
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = false)
-                            }
-                        } else {
-                            sharedViewModel.updateTeam(teamId = 0) {
-                                copy(hasGoal = true)
-                            }
-                            sharedViewModel.updateScoreTeam(teamId = 0, newScore = 1)
-
-                            sharedViewModel.updateTeam(teamId = 1) {
-                                copy(hasGoal = false)
-                            }
-                        }
-                    }
-                    onClickItem(whichTeamResult)
-                    sharedViewModel.updateTeam(teamId = whichTeamResult) {
-                        copy(selectedCube = false)
-                    }
-                })
+//            Spacer(modifier = Modifier.height(16.sdp))
         }
     }
 }
@@ -732,19 +524,15 @@ fun BottomSheetResultOfThisRound(
 @Composable
 fun BottomSheetCards(
     modifier: Modifier = Modifier,
+    availableCards: List<GameCardModel>,
+    isTargetTeamOne: Boolean,
     onDismiss: () -> Unit,
-    onClickOk: (Int, Int) -> Unit,
-    whichTeamHasGoal: Int,
-    sharedViewModel: SharedViewModel
+    onConfirm: (Int) -> Unit,
 ) {
-    val card: TeamModel? = if (whichTeamHasGoal == 0) {
-        sharedViewModel.getTeam(1)
-    } else {
-        sharedViewModel.getTeam(0)
-    }
-    val availableCards = card?.cards?.filter { !it.disable }
-    // کارت انتخاب شده
     var selectedCardId by remember { mutableStateOf<Int?>(null) }
+    val teamImage = if (isTargetTeamOne) R.drawable.pic_team_one else R.drawable.pic_team_two
+    val descriptionText =
+        if (isTargetTeamOne) R.string.description_choose_card_team_one else R.string.description_choose_card_team_two
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
@@ -787,8 +575,7 @@ fun BottomSheetCards(
                 horizontalArrangement = Arrangement.spacedBy(paddingRoundMini())
             ) {
                 Image(
-                    painter = if (whichTeamHasGoal == 1) painterResource(R.drawable.pic_team_one)
-                    else painterResource(R.drawable.pic_team_two),
+                    painter = painterResource(teamImage),
                     contentDescription = null,
                     modifier = modifier.size(
                         sizePicSmall()
@@ -799,8 +586,7 @@ fun BottomSheetCards(
                         top = paddingTopMedium(),
                         bottom = paddingTopMedium()
                     ),
-                    text = if (whichTeamHasGoal == 1) stringResource(R.string.description_choose_card_team_one)
-                    else stringResource(R.string.description_choose_card_team_two),
+                    text = stringResource(descriptionText),
                     color = Color.White,
                     fontFamily = FontPeydaMedium,
                     fontSize = descriptionSize(),
@@ -809,11 +595,10 @@ fun BottomSheetCards(
             }
 
             LazyColumn(modifier = modifier.weight(1f)) {
-                items(availableCards!!.size) { index ->
-                    val itemCard = availableCards[index]
+                items(availableCards) { itemCard ->
+                    val isSelected = selectedCardId == itemCard.id
                     ItemCard(
-                        title = itemCard.name,
-                        description = itemCard.description,
+                        card = itemCard,
                         alpha = if (selectedCardId == null || selectedCardId == itemCard.id) 1f else .5f,
                         onClickItem = {
                             selectedCardId = itemCard.id
@@ -835,11 +620,7 @@ fun BottomSheetCards(
                     ),
                     enabled = selectedCardId != null,
                     onClick = {
-                        if (whichTeamHasGoal == 0) {
-                            onClickOk(selectedCardId!!, 1)
-                        } else {
-                            onClickOk(selectedCardId!!, 0)
-                        }
+                        selectedCardId?.let { onConfirm(it) }
                     }
                 ) {
                     Text(
@@ -874,8 +655,7 @@ fun BottomSheetCards(
 @Composable
 fun ItemCard(
     modifier: Modifier = Modifier,
-    title: String,
-    description: String,
+    card: GameCardModel,
     alpha: Float = 1f,
     onClickItem: () -> Unit
 ) {
@@ -911,14 +691,14 @@ fun ItemCard(
                         contentDescription = "image"
                     )
                     Text(
-                        text = title,
+                        text = stringResource(card.title),
                         color = Color.White,
                         fontSize = descriptionSize(),
                         fontFamily = FontPeydaBold
                     )
                 }
                 Text(
-                    text = description,
+                    text = stringResource(card.description),
                     color = Color.White,
                     fontSize = descriptionSize(),
                     fontFamily = FontPeydaMedium,
@@ -933,7 +713,7 @@ fun ItemCard(
 @Composable
 fun BottomSheetCube(
     modifier: Modifier = Modifier,
-    whichTeamHasGoal: Int,
+    isTeamOne: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
 ) {
@@ -942,6 +722,10 @@ fun BottomSheetCube(
 
     // گزینه‌های مکعب
     val options = listOf(2, 4, 6)
+// تعیین منابع بر اساس تیم
+    val teamImage = if (isTeamOne) R.drawable.pic_team_one else R.drawable.pic_team_two
+    val descriptionText =
+        if (isTeamOne) R.string.description_score_cube_team_one else R.string.description_score_cube_team_two
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
@@ -955,10 +739,7 @@ fun BottomSheetCube(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter = if (whichTeamHasGoal == 1)
-                        painterResource(R.drawable.pic_team_one)
-                    else
-                        painterResource(R.drawable.pic_team_two),
+                    painter = painterResource(teamImage),
                     contentDescription = null,
                     modifier = modifier.size(
                         sizePicSmall()
@@ -987,10 +768,7 @@ fun BottomSheetCube(
 
             Text(
                 modifier = modifier.padding(top = paddingTopMedium(), bottom = paddingTopMedium()),
-                text = if (whichTeamHasGoal == 1)
-                    stringResource(R.string.description_score_cube_team_one)
-                else
-                    stringResource(R.string.description_score_cube_team_two),
+                text = stringResource(descriptionText),
                 color = Color.White,
                 fontFamily = FontPeydaMedium,
                 fontSize = descriptionSize(),
@@ -1004,49 +782,11 @@ fun BottomSheetCube(
                     .fillMaxWidth()
             ) {
                 options.forEach { option ->
-                    Card(
-                        modifier = modifier
-                            .padding(start = paddingRoundMini())
-                            .clickable { selectedOption = option }
-                            .align(Alignment.CenterVertically)
-                            .graphicsLayer(alpha = if (selectedOption == option) 1f else 0.5f),
-                        colors = CardColors(
-                            containerColor = Color.Transparent,
-                            contentColor = Color.Transparent,
-                            disabledContainerColor = Color.Transparent,
-                            disabledContentColor = Color.Transparent
-                        ),
-                        shape = RoundedCornerShape(sizeRound()),
-                        border = BorderStroke(width = 1.sdp, color = Color.White)
-                    ) {
-                        Column(
-                            modifier = modifier
-                                .padding(
-                                    top = paddingRoundMini(),
-                                    bottom = paddingRoundMini(),
-                                    start = paddingTopMedium(),
-                                    end = paddingTopMedium()
-                                ),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.cube),
-                                contentDescription = "star",
-                                modifier = modifier.size(sizePicSmall())
-                            )
-                            Text(
-                                modifier = modifier.padding(
-                                    top = paddingTop()
-                                ),
-                                text = option.toString(),
-                                color = Color.White,
-                                fontFamily = FontPeydaMedium,
-                                fontSize = titleSize(),
-                                textAlign = TextAlign.Justify
-                            )
-                        }
-                    }
+                    CubeOptionCard(
+                        option = option,
+                        isSelected = selectedOption == option,
+                        onClick = { selectedOption = option }
+                    )
                 }
             }
             Row(modifier = Modifier.padding(top = paddingTopLarge())) {
@@ -1095,15 +835,65 @@ fun BottomSheetCube(
     }
 }
 
+@Composable
+fun CubeOptionCard(
+    option: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .padding(horizontal = paddingRoundMini())
+            .clickable { onClick() }
+            .graphicsLayer(alpha = if (isSelected) 1f else 0.5f), // شفافیت برای انتخاب نشده‌ها
+        colors = CardColors(
+            containerColor = Color.Transparent,
+            contentColor = Color.White,
+            disabledContainerColor = Color.Transparent,
+            disabledContentColor = Color.Transparent
+        ),
+        shape = RoundedCornerShape(sizeRound()),
+        border = BorderStroke(width = 1.sdp, color = Color.White)
+    ) {
+        Column(
+            modifier = Modifier.padding(
+                vertical = paddingRoundMini(),
+                horizontal = paddingTopMedium()
+            ),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(R.drawable.cube),
+                contentDescription = null,
+                modifier = Modifier.size(sizePicSmall())
+            )
+            Text(
+                modifier = Modifier.padding(top = paddingTop()),
+                text = option.toString(),
+                color = Color.White,
+                fontFamily = FontPeydaMedium,
+                fontSize = titleSize()
+            )
+        }
+    }
+}
 
 @Composable
 fun BottomSheetConfirmCube(
     modifier: Modifier = Modifier,
-    whichTeamHasGoal: Int,
-    numberCube: Int,
+    isRequestingTeamOne: Boolean,
+    score: Int,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val teamImage = if (isRequestingTeamOne) R.drawable.pic_team_one else R.drawable.pic_team_two
+
+    // متن: "تیم X درخواست مکعب Y امتیازی دارد"
+    val descriptionRes = if (isRequestingTeamOne)
+        R.string.description_confirm_score_cube_team_one
+    else
+        R.string.description_confirm_score_cube_team_two
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
             modifier = modifier
@@ -1116,10 +906,7 @@ fun BottomSheetConfirmCube(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter = if (whichTeamHasGoal == 0)
-                        painterResource(R.drawable.pic_team_one)
-                    else
-                        painterResource(R.drawable.pic_team_two),
+                    painter = painterResource(teamImage),
                     contentDescription = null,
                     modifier = modifier.size(
                         sizePicSmall()
@@ -1139,10 +926,7 @@ fun BottomSheetConfirmCube(
 
             Text(
                 modifier = modifier.padding(top = paddingTopMedium(), bottom = paddingTopMedium()),
-                text = if (whichTeamHasGoal == 0)
-                    stringResource(R.string.description_confirm_score_cube_team_one, numberCube)
-                else
-                    stringResource(R.string.description_confirm_score_cube_team_two, numberCube),
+                text = stringResource(descriptionRes, score),
                 color = Color.White,
                 fontFamily = FontPeydaMedium,
                 fontSize = descriptionSize(),

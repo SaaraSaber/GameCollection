@@ -97,7 +97,7 @@ fun DisplayCardScreen(
                 }
 
                 is CardDisplayEffect.NavigateToMainGame -> {
-                     navController.navigate(Routes.GOOLYAPOOCH_START_GAME)
+                     navController.navigate(Routes.getStartGameRoute(starterTeamId = effect.starterTeamId))
                 }
 
                 CardDisplayEffect.NavigateToHome -> navController.popBackStack(Routes.HOME, inclusive = false)
