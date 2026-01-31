@@ -1,0 +1,25 @@
+# فایل‌های ساخته شده توسط سیستم (Build)
+/build
+/*/build
+*.iml
+.gradle
+/local.properties
+
+# تنظیمات شخصی اندروید استودیو
+.idea/
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizard.settings.xml
+
+# فایل‌های حساس و امنیتی (بسیار مهم)
+*.jks
+*.keystore
+google-services.json
+secrets.properties
+
+# فایل‌های سیستم عامل
+.DS_Store
+/captures

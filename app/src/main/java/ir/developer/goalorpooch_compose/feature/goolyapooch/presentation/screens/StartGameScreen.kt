@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -102,11 +103,19 @@ fun StartGameScreen(
     viewModel: StartGameViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val isNonDismissible = state.activeDialog is GameDialogState.OpeningDuel ||
+            state.activeDialog is GameDialogState.Winner
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val sheetStateValueChane =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
-            confirmValueChange = { it != sheetStateValueChane.Hidden })
+            confirmValueChange = { newSheetValue ->
+                if (isNonDismissible) {
+                    newSheetValue != SheetValue.Hidden
+                } else {
+                    true
+                }
+            })
     val scope = rememberCoroutineScope()
 
     BackHandler {
@@ -397,7 +406,11 @@ fun StartGameScreen(
                             GameDialogState.None -> {}
                             GameDialogState.OpeningDuel -> {
                                 ModalBottomSheet(
-                                    onDismissRequest = {},
+                                    onDismissRequest = {
+                                        if (!isNonDismissible) {
+                                            viewModel.handleIntent(StartGameIntent.OnDismissDialog)
+                                        }
+                                    },
                                     sheetState = sheetStateValueChane,
                                     properties = ModalBottomSheetProperties(
                                         shouldDismissOnBackPress = false,
