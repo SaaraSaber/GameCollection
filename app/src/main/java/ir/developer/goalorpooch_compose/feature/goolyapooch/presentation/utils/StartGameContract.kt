@@ -48,7 +48,6 @@ data class StartGameState(
     val isDuelMode: Boolean = false, // آیا بازی به دوئل کشیده؟
     val starterTeamId: Int = 0,
     val activeDialog: GameDialogState = GameDialogState.OpeningDuel, // پیش‌فرض: دوئل اول بازی
-
     val emptyHandCount: Int = 3,
 
     // پیغام‌ها (Toast)

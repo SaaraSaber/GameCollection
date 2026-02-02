@@ -27,7 +27,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -55,7 +54,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import ir.developer.goalorpooch_compose.R
@@ -103,19 +101,9 @@ fun StartGameScreen(
     viewModel: StartGameViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-    val isNonDismissible = state.activeDialog is GameDialogState.OpeningDuel ||
-            state.activeDialog is GameDialogState.Winner
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val sheetStateValueChane =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-            confirmValueChange = { newSheetValue ->
-                if (isNonDismissible) {
-                    newSheetValue != SheetValue.Hidden
-                } else {
-                    true
-                }
-            })
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden })
     val scope = rememberCoroutineScope()
 
     BackHandler {
@@ -160,23 +148,37 @@ fun StartGameScreen(
                         scoreTeamOne = state.team1.score,
                         scoreTeamTwo = state.team2.score,
                         whichTeamHasGoal =
-                            if (state.team1.hasGoal) 0 else if (state.team2.hasGoal) 1 else 2
+                            when {
+                                state.team1.hasGoal -> 0
+                                state.team2.hasGoal -> 1
+                                else -> 2
+                            }
                     )
 
 //...............table
                     if (state.isDuelMode) {
                         TableDuel(
                             whichTeamHasGoal =
-                                if (state.team1.hasGoal) 0 else if (state.team1.hasGoal) 1 else 2
+                                when {
+                                    state.team1.hasGoal -> 0
+                                    state.team2.hasGoal -> 1
+                                    else -> 2
+                                }
+//                                if (state.team1.hasGoal) 0 else if (state.team1.hasGoal) 1 else 2
                         )
                     } else {
                         TableGame(
                             whichTeamHasGoal =
-                                if (state.team1.hasGoal) 0 else if (state.team1.hasGoal) 1 else 2,
+                                when {
+                                    state.team1.hasGoal -> 0
+                                    state.team2.hasGoal -> 1
+                                    else -> 2
+                                },
                             remainingTime = state.timerValue,
                             showTimer = state.isTimerRunning,
-                            isVisibilityShahGoal = state.isShahGoalMode
-                        )
+                            isVisibilityShahGoal = state.isShahGoalMode,
+
+                            )
                     }
 
 // ............... Time Button ...............
@@ -243,7 +245,11 @@ fun StartGameScreen(
 //.................box
                     if (!state.isDuelMode) {
                         val hasGoalTeamId =
-                            if (state.team1.hasGoal) 0 else if (state.team2.hasGoal) 1 else -1
+                            when {
+                                state.team1.hasGoal -> 0
+                                state.team2.hasGoal -> 1
+                                else -> -1
+                            }
                         if (hasGoalTeamId != -1) {
                             TeamInfoSection(
                                 infoTeam = if (hasGoalTeamId == 0) state.team1 else state.team2,
@@ -260,13 +266,7 @@ fun StartGameScreen(
 
                 if (state.activeDialog !is GameDialogState.None) {
                     ModalBottomSheet(
-                        onDismissRequest = {
-                            if (state.activeDialog !is GameDialogState.Winner &&
-                                state.activeDialog !is GameDialogState.OpeningDuel
-                            ) {
-                                viewModel.handleIntent(StartGameIntent.OnDismissDialog)
-                            }
-                        },
+                        onDismissRequest = {},
                         sheetState = sheetState,
                         shape = RoundedCornerShape(
                             topEnd = sizeRoundBottomSheet(),
@@ -293,7 +293,8 @@ fun StartGameScreen(
                                         viewModel.handleIntent(StartGameIntent.OnDismissDialog)
                                     },
                                     onConfirm = { cardId ->
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        scope.launch {
+                                            sheetState.hide()
                                             viewModel.handleIntent(
                                                 StartGameIntent.OnCardSelected(
                                                     cardId
@@ -322,7 +323,8 @@ fun StartGameScreen(
                                     score = score,
                                     onConfirm = {
                                         // بستن شیت و اعمال تغییرات در ویومدل
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        scope.launch {
+                                            sheetState.hide()
                                             viewModel.handleIntent(StartGameIntent.OnCubeConfirmed)
                                         }
                                     },
@@ -343,7 +345,8 @@ fun StartGameScreen(
                                     },
                                     onConfirm = { selectedScore ->
                                         // بستن شیت فعلی و رفتن به مرحله بعد (تاییدیه)
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        scope.launch {
+                                            sheetState.hide()
                                             viewModel.handleIntent(
                                                 StartGameIntent.OnCubeNumberSelected(
                                                     selectedScore
@@ -360,7 +363,8 @@ fun StartGameScreen(
                                 BottomSheetContactResultDuel(
                                     isTeamOneHolder = isTeamOneHolder,
                                     onResult = { result ->
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        scope.launch {
+                                            sheetState.hide()
                                             viewModel.handleIntent(
                                                 StartGameIntent.OnDuelResult(
                                                     result
@@ -372,83 +376,56 @@ fun StartGameScreen(
                             }
 
                             GameDialogState.ExitGame -> {
-                                ModalBottomSheet(
-                                    onDismissRequest = { viewModel.handleIntent(StartGameIntent.OnDismissDialog) },
-                                    sheetState = sheetState,
-                                    shape = RoundedCornerShape(
-                                        topEnd = sizeRoundBottomSheet(),
-                                        topStart = sizeRoundBottomSheet()
-                                    ),
-                                    containerColor = FenceGreen
-                                ) {
-                                    FinishGameDialog(
-                                        onClickExit = {
-                                            scope.launch { sheetState.hide() }
-                                                .invokeOnCompletion {
-                                                    viewModel.handleIntent(
-                                                        StartGameIntent.OnDismissDialog
-                                                    )
-                                                }
-                                            viewModel.handleIntent(StartGameIntent.OnExitConfirmed)
-                                        },
-                                        onClickContinueGame = {
-                                            scope.launch { sheetState.hide() }
-                                                .invokeOnCompletion {
-                                                    viewModel.handleIntent(
-                                                        StartGameIntent.OnDismissDialog
-                                                    )
-                                                }
+                                FinishGameDialog(
+                                    onClickExit = {
+                                        scope.launch {
+                                            sheetState.hide()
+                                            viewModel.handleIntent(
+                                                StartGameIntent.OnDismissDialog
+                                            )
                                         }
-                                    )
-                                }
+                                        viewModel.handleIntent(StartGameIntent.OnExitConfirmed)
+                                    },
+                                    onClickContinueGame = {
+                                        scope.launch {
+                                            sheetState.hide()
+                                            viewModel.handleIntent(
+                                                StartGameIntent.OnDismissDialog
+                                            )
+                                        }
+                                    }
+                                )
                             }
 
-                            GameDialogState.None -> {}
                             GameDialogState.OpeningDuel -> {
-                                ModalBottomSheet(
-                                    onDismissRequest = {
-                                        if (!isNonDismissible) {
-                                            viewModel.handleIntent(StartGameIntent.OnDismissDialog)
+                                BottomSheetOpeningDuel(
+                                    starterTeamId = state.starterTeamId,
+                                    onWinnerSelected = { winnerId ->
+                                        // بستن شیت و ارسال برنده به ویومدل
+                                        scope.launch {
+                                            sheetState.hide()
+
+                                            viewModel.handleIntent(
+                                                StartGameIntent.OnOpeningDuelWinner(
+                                                    winnerId
+                                                )
+
+                                            )
                                         }
-                                    },
-                                    sheetState = sheetStateValueChane,
-                                    properties = ModalBottomSheetProperties(
-                                        shouldDismissOnBackPress = false,
-                                        securePolicy = SecureFlagPolicy.Inherit
-                                    ),
-                                    shape = RoundedCornerShape(
-                                        topEnd = sizeRoundBottomSheet(),
-                                        topStart = sizeRoundBottomSheet()
-                                    ), containerColor = FenceGreen, dragHandle = null
-                                ) {
-                                    BottomSheetOpeningDuel(
-                                        starterTeamId = state.starterTeamId,
-                                        onWinnerSelected = { winnerId ->
-                                            // بستن شیت و ارسال برنده به ویومدل
-                                            scope.launch { sheetStateValueChane.hide() }
-                                                .invokeOnCompletion {
-                                                    if (!sheetStateValueChane.isVisible) {
-                                                        viewModel.handleIntent(
-                                                            StartGameIntent.OnOpeningDuelWinner(
-                                                                winnerId
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                        })
-                                }
+
+                                    }, onDismissRequest = {
+                                        viewModel.handleIntent(StartGameIntent.OnDismissDialog)
+                                    })
                             }
 
                             GameDialogState.RoundResult -> {
                                 BottomSheetResultOfThisRound(
                                     isTeamOneHavingGoal = state.team1.hasGoal, // تشخیص اینکه متن برای کدوم تیم باشه
                                     onResultClicked = { outcome ->
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                            // منطق کامل رو سپردیم به ویومدل
+                                        scope.launch {
+                                            sheetState.hide()
                                             viewModel.handleIntent(
-                                                StartGameIntent.OnRoundResult(
-                                                    outcome
-                                                )
+                                                StartGameIntent.OnRoundResult(outcome)
                                             )
                                         }
                                     }
@@ -460,7 +437,8 @@ fun StartGameScreen(
                                 BottomSheetResultShahGoal(
                                     isTeamOne = isTeamOnHavingGoal,
                                     onResult = { isGoalFound ->
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        scope.launch {
+                                            sheetState.hide()
                                             viewModel.handleIntent(
                                                 StartGameIntent.OnShahGoalResult(
                                                     isGoalFound
@@ -477,17 +455,21 @@ fun StartGameScreen(
                                 BottomSheetWinner(
                                     isTeamOneWinner = isTeamOneWinner,
                                     onClickRepeatGame = {
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        scope.launch {
+                                            sheetState.hide()
                                             viewModel.handleIntent(StartGameIntent.OnRepeatGame)
                                         }
                                     },
                                     onClickExit = {
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        scope.launch {
+                                            sheetState.hide()
                                             viewModel.handleIntent(StartGameIntent.OnExitConfirmed)
                                         }
                                     }
                                 )
                             }
+
+                            GameDialogState.None -> {}
                         }
 
                     }

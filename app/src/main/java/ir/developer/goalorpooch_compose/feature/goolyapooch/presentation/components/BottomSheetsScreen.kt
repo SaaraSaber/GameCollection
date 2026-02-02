@@ -70,14 +70,14 @@ fun BottomSheetOpeningDuel(
     modifier: Modifier = Modifier,
     starterTeamId: Int,
     onWinnerSelected: (Int) -> Unit,
-//    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit
 ) {
     val isTeamOneStarter = starterTeamId == 0
     val opponentTeamId = if (isTeamOneStarter) 1 else 0
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
             modifier = modifier
-                .padding(start = paddingRound(), end = paddingRound(), bottom = paddingRound())
+                .padding( paddingRound())
                 .fillMaxWidth()
         ) {
             Row(
@@ -117,7 +117,7 @@ fun BottomSheetOpeningDuel(
                 onClick = {
                     // اگر حفظ کرد، یعنی برنده همون تیم شروع‌کننده است
                     onWinnerSelected(starterTeamId)
-//                    onDismissRequest()
+                    onDismissRequest()
                 }
             )
 
@@ -133,7 +133,7 @@ fun BottomSheetOpeningDuel(
                 onClick = {
                     // اگر گل گرفته شد، یعنی برنده تیم حریف است
                     onWinnerSelected(opponentTeamId)
-//                    onDismissRequest()
+                    onDismissRequest()
                 }
             )
         }

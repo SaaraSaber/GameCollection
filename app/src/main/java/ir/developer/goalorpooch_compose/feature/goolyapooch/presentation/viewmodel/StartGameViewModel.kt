@@ -55,8 +55,8 @@ class StartGameViewModel @Inject constructor(
             val config = settingRepo.getGameConfig().first()
             gameConfig = config
 
-            val t1 = sessionRepo.getTeam(1)
-            val t2 = sessionRepo.getTeam(2)
+            val t1 = sessionRepo.getTeam(0)
+            val t2 = sessionRepo.getTeam(1)
 
             _state.update {
                 it.copy(
@@ -332,21 +332,22 @@ class StartGameViewModel @Inject constructor(
     /**
      * تعیین برنده دوئل اول بازی (مشخص شدن صاحب گل)
      */
-    private fun handleOpeningDuel(winnerTeamId: Int) {
-        updateTeamsStateAndRepo { t1, t2 ->
-            val newT1: TeamModel
-            val newT2: TeamModel
+    private fun handleOpeningDuel(winnerId: Int) {
+        val currentTeam1Id = _state.value.team1.id
+        val currentTeam2Id = _state.value.team2.id
 
-            if (winnerTeamId == 0) {
-                newT1 = t1.copy(hasGoal = true)
-                newT2 = t2.copy(hasGoal = false)
-            } else {
-                newT1 = t1.copy(hasGoal = false)
-                newT2 = t2.copy(hasGoal = true)
-            }
-            Pair(newT1, newT2)
+        _state.update { currentState ->
+            currentState.copy(
+                team1 = currentState.team1.copy(
+                    hasGoal = (currentState.team1.id == winnerId)
+                ),
+                team2 = currentState.team2.copy(
+                    hasGoal = (currentState.team2.id == winnerId)
+                ),
+                activeDialog = GameDialogState.None,
+                timerButtonTextRes = R.string.start_time
+            )
         }
-        setDialog(GameDialogState.None)
     }
 
     private fun updateTeamsStateAndRepo(
