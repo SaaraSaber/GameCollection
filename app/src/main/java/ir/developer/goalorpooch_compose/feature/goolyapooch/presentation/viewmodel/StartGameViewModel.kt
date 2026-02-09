@@ -17,6 +17,7 @@ import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.R
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StartGameEffect
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StartGameIntent
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StartGameState
+import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.StarterTeam
 import ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.utils.ToastType
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -54,9 +55,12 @@ class StartGameViewModel @Inject constructor(
         viewModelScope.launch {
             val config = settingRepo.getGameConfig().first()
             gameConfig = config
-
-            val t1 = sessionRepo.getTeam(0)
-            val t2 = sessionRepo.getTeam(1)
+            val rawT1 = sessionRepo.getTeam(0)
+            val rawT2 = sessionRepo.getTeam(1)
+            val t1Cards = sessionRepo.getSelectedCards(team = StarterTeam.TEAM_1)
+            val t2Cards = sessionRepo.getSelectedCards(team = StarterTeam.TEAM_2)
+            val t1 = rawT1.copy(cards = t1Cards)
+            val t2 = rawT2.copy(cards = t2Cards)
 
             _state.update {
                 it.copy(
@@ -73,18 +77,14 @@ class StartGameViewModel @Inject constructor(
     fun handleIntent(intent: StartGameIntent) {
         when (intent) {
             StartGameIntent.OnBackClicked -> setDialog(GameDialogState.ExitGame)
-            is StartGameIntent.OnCardSelected -> disableCard(intent.cardId)
+//            is StartGameIntent.OnCardSelected -> disableCard()
             is StartGameIntent.OnCardsItemClicked -> {
-                // ۱. پیدا کردن تیمی که گل دستش هست (استفاده‌کننده آیتم)
                 val currentTeamHasGoal = if (_state.value.team1.hasGoal) 0 else 1
-
-                // ۲. پیدا کردن تیم حریف (تیمی که قراره کارتشون رو ببینیم و حذف کنیم)
                 val targetTeamId = if (currentTeamHasGoal == 0) 1 else 0
-
-                // ۳. باز کردن دیالوگ با آیدی تیم حریف
-                setDialog(Cards(targetTeamId))
+                onOpenCardDialog(targetTeamId)
             }
 
+            is StartGameIntent.OpenCards -> onOpenCardDialog(intent.teamId)
             StartGameIntent.OnCubeConfirmed -> handleCubeConfirm()
             StartGameIntent.OnCubeItemClicked -> setDialog(GameDialogState.Cube)
             is StartGameIntent.OnCubeNumberSelected -> setDialog(ConfirmCube(intent.number))
@@ -110,13 +110,8 @@ class StartGameViewModel @Inject constructor(
                 }
             }
 
-            is StartGameIntent.OnBurnCard -> {
-                _state.update { it.copy(selectedCardId = intent.cardId) } // موقت ست میکنیم
-                burnSelectedCard() // تابع حذف رو صدا میزنیم
-            }
-
-            StartGameIntent.OnConfirmCardUsage -> {
-                burnSelectedCard()
+            is StartGameIntent.OnConfirmCardUsage -> {
+                burnSelectedCard(cardId = intent.cardId, teamId = intent.teamId)
             }
 
             is StartGameIntent.OnOpenCardsDialog -> {
@@ -132,39 +127,63 @@ class StartGameViewModel @Inject constructor(
         }
     }
 
-    private fun burnSelectedCard() {
+    private fun onOpenCardDialog(teamId: Int) {
         val currentState = _state.value
-        // چک میکنیم دیالوگ کارت باز باشه و یک کارت هم انتخاب شده باشه
-        val dialogState = currentState.activeDialog as? GameDialogState.Cards ?: return
-        val cardIdToDelete = currentState.selectedCardId ?: return
 
-        updateTeamsStateAndRepo { t1, t2 ->
-            // تشخیص میدیم کارت مال کدوم تیمه
-            val targetTeam = if (dialogState.teamId == 0) t1 else t2
-
-            // ✅ فیلتر کردن لیست: کارتی که آیدیش برابره رو حذف میکنیم (نگه نمیداریم)
-            val newCards = targetTeam.cards.filter { it.id != cardIdToDelete }
-
-            val updatedTeam = targetTeam.copy(cards = newCards)
-
-            // برگرداندن جفت تیم‌ها
-            if (updatedTeam.id == 0) {
-                Pair(updatedTeam, t2)
-            } else {
-                Pair(t1, updatedTeam)
-            }
+        // قانون ۱: اگر در این دور کارت زده، اجازه نده
+        if (currentState.hasUsedCardInCurrentRound) {
+            showToast("در هر دور فقط یک کارت می‌توانید استفاده کنید", ToastType.ERROR)
+            return
         }
 
-        // بستن دیالوگ و پاک کردن انتخاب
+        // پیدا کردن تیمی که درخواست داده
+        val targetTeam =
+            if (currentState.team1.id == teamId) currentState.team1 else currentState.team2
+
+        // قانون ۲: اگر لیست کارتش خالیه، باز نکن
+        if (targetTeam.cards.isEmpty()) {
+            showToast("کارت‌های این تیم تمام شده است!", ToastType.ERROR)
+            return
+        }
+
+        // همه چی اوکی بود -> دیالوگ رو باز کن
         _state.update {
-            it.copy(
+            it.copy(activeDialog = GameDialogState.Cards(teamId))
+        }
+    }
+
+    private fun burnSelectedCard(cardId: Int,teamId: Int) {
+        _state.update { currentState ->
+            val t1 = currentState.team1
+            val t2 = currentState.team2
+
+            val targetTeam = if (t1.id == teamId) t1 else t2
+
+            // ۲. ⚠️ تغییر مهم: به جای حذف، وضعیتش را True میکنیم
+            val newCards = targetTeam.cards.map { card ->
+                if (card.id == cardId) {
+                    card.copy(isUsed = true) // 🚩 پرچم بالا: این کارت سوخت
+                } else {
+                    card // بقیه کارت‌ها دست نخورند
+                }
+            }
+
+            // ۳. ساخت تیم جدید با لیست آپدیت شده
+            val updatedTeam = targetTeam.copy(cards = newCards)
+
+            // ۴. ذخیره در دیتابیس
+            sessionRepo.updateTeam(updatedTeam)
+
+            // ۵. آپدیت استیت (با همان روش امن ID Matching)
+            currentState.copy(
+                team1 = if (t1.id == targetTeam.id) updatedTeam else t1,
+                team2 = if (t2.id == targetTeam.id) updatedTeam else t2,
                 activeDialog = GameDialogState.None,
-                selectedCardId = null,
-                toastMessage = "کارت با موفقیت استفاده شد",
+                hasUsedCardInCurrentRound = true,
+                toastMessage = "کارت اعمال شد",
                 toastType = ToastType.SUCCESS
             )
         }
-        // پاک کردن توست بعد از چند ثانیه
         clearToastAfterDelay()
     }
 
@@ -250,50 +269,124 @@ class StartGameViewModel @Inject constructor(
      * نتیجه هر دور بازی (عادی)
      * @param winnerTeamId: تیمی که امتیاز گرفته (null یعنی پوچ/مساوی)
      */
+//    private fun handleRoundResult(outcome: RoundOutcome) {
+//        updateTeamsStateAndRepo { t1, t2 ->
+//
+//            val isT1Holder = t1.hasGoal
+//            val holder = if (isT1Holder) t1 else t2
+//            val opponent = if (isT1Holder) t2 else t1
+//            var newHolder = holder
+//            var newOpponent = opponent
+//
+//            when (outcome) {
+//                RoundOutcome.TAK_ZARB -> {
+//                    newOpponent = opponent.copy(
+//                        score = opponent.score + 2,
+//                        hasGoal = true
+//                    )
+//                    newHolder = holder.copy(hasGoal = false)
+//                }
+//
+//                RoundOutcome.TOOK_GOAL -> {
+//                    newOpponent = opponent.copy(hasGoal = true)
+//                    newHolder = holder.copy(hasGoal = false)
+//                }
+//
+//                RoundOutcome.DID_NOT_TAKE -> {
+//                    newHolder = holder.copy(score = holder.score + 1)
+//                }
+//            }
+//
+//            if (isT1Holder) {
+//                Pair(newHolder, newOpponent)
+//            } else {
+//                Pair(newOpponent, newHolder)
+//            }
+//        }
+//
+//        _state.update {
+//            it.copy(
+//                activeDialog = GameDialogState.None,
+//                timerButtonTextRes = R.string.start_time,
+//                timerButtonIconRes = R.drawable.time,
+//                hasUsedCardInCurrentRound = false,
+//                emptyHandCount = 3
+//            )
+//        }
+//    }
     private fun handleRoundResult(outcome: RoundOutcome) {
-        updateTeamsStateAndRepo { t1, t2 ->
-            // ۱. تشخیص تیم صاحب گل (Holder) و حریف (Opponent)
-            val holder = if (t1.hasGoal) t1 else t2
-            val opponent = if (t1.hasGoal) t2 else t1
+        _state.update { currentState ->
+            // ۱. گرفتن وضعیت فعلی تیم‌ها
+            val t1 = currentState.team1
+            val t2 = currentState.team2
 
+            // ۲. تشخیص اینکه الان توپ دست کیه (Holder) و کی داره دفاع میکنه (Opponent)
+            val isT1Holder = t1.hasGoal
+            val holder = if (isT1Holder) t1 else t2
+            val opponent = if (isT1Holder) t2 else t1
+
+            // متغیرهای موقت برای نسخه جدید تیم‌ها
             var newHolder = holder
             var newOpponent = opponent
-            val multiplier = holder.selectedCubeValue
 
+            // ۳. اعمال سناریوی شما
             when (outcome) {
-                RoundOutcome.TECHNICAL_WIN -> {
-                    // گزینه ۱ (کاپ): ۲ امتیاز (یا مکعب) میگیره و گل رو نگه میداره
-                    val score = if (multiplier > 1) multiplier else 2
-                    newHolder = holder.copy(score = holder.score + score)
-                }
-
-                RoundOutcome.SIMPLE_WIN -> {
-                    // برد ساده: امتیاز نمیگیره مگه اینکه مکعب زده باشه
-                    if (multiplier > 1) {
-                        newHolder = holder.copy(score = holder.score + multiplier)
-                    }
-                }
-
-                RoundOutcome.LOSS -> {
-                    // باخت: حریف امتیاز میگیره (1 * ضریب مکعب)
-                    val scoreForOpponent = 1 * multiplier // اگه مکعب 4 باشه، حریف 4 امتیاز میگیره
-
-                    newHolder = holder.copy(hasGoal = false)
+                RoundOutcome.TAK_ZARB -> {
+                    // گزینه اول: تیم مقابل (Opponent) ۲ امتیاز میگیره و گل هم مال اون میشه
                     newOpponent = opponent.copy(
-                        hasGoal = true,
-                        score = opponent.score + scoreForOpponent
+                        score = opponent.score + 2,
+                        hasGoal = true // ⚽ گل جابجا شد
                     )
+                    newHolder = holder.copy(hasGoal = false)
+                }
+
+                RoundOutcome.TOOK_GOAL -> {
+                    // گزینه دوم: تیم مقابل (Opponent) فقط گل رو میگیره (بدون امتیاز)
+                    newOpponent = opponent.copy(
+                        hasGoal = true // ⚽ گل جابجا شد
+                    )
+                    newHolder = holder.copy(hasGoal = false)
+                }
+
+                RoundOutcome.DID_NOT_TAKE -> {
+                    // گزینه سوم: تیم صاحب توپ (Holder) ۱ امتیاز میگیره و گل دستش میمونه
+                    newHolder = holder.copy(
+                        score = holder.score + 1,
+                        hasGoal = true // ⚽ گل سر جاش موند
+                    )
+                    // حریف هیچ تغییری نمیکنه (نه امتیاز، نه گل)
+                    newOpponent = opponent.copy(hasGoal = false)
                 }
             }
 
-            // ۳. ریست کردن وضعیت مکعب برای دور بعد (طبق کد قبلی)
-            newHolder = newHolder.copy(selectedCubeValue = 1)
-            newOpponent = newOpponent.copy(selectedCubeValue = 1)
+            // ۴. ذخیره در دیتابیس (هر دو تیم رو آپدیت میکنیم)
+            sessionRepo.updateTeam(newHolder)
+            sessionRepo.updateTeam(newOpponent)
 
-            // ۴. برگرداندن تیم‌های آپدیت شده در جایگاه درست (t1, t2)
-            if (newHolder.id == 0) Pair(newHolder, newOpponent) else Pair(newOpponent, newHolder)
+            // ۵. ⚠️ بخش حیاتی برای جلوگیری از جابجایی اشتباه (Fix Swapping Bug)
+            // تمام تیم‌های آپدیت شده رو میریزیم تو یه کیسه
+            val allUpdatedTeams = listOf(newHolder, newOpponent)
+
+            // حالا با دقتِ جراحی، تیم‌ها رو میذاریم سر جاشون:
+
+            // "بگرد ببین کدوم تیم، آی‌دی تیم ۱ رو داره؟ همونو بذار جای team1"
+            val finalTeam1 = allUpdatedTeams.find { it.id == t1.id } ?: t1
+
+            // "بگرد ببین کدوم تیم، آی‌دی تیم ۲ رو داره؟ همونو بذار جای team2"
+            val finalTeam2 = allUpdatedTeams.find { it.id == t2.id } ?: t2
+
+            // ۶. آپدیت نهایی استیت
+            currentState.copy(
+                team1 = finalTeam1,
+                team2 = finalTeam2,
+
+                // ریست کردن دیالوگ و تنظیمات دور بعد
+                activeDialog = GameDialogState.None,
+                timerButtonTextRes = R.string.start_time,
+                hasUsedCardInCurrentRound = false, // 🔓 اجازه استفاده از کارت برای دور جدید
+                emptyHandCount = 3
+            )
         }
-        setDialog(GameDialogState.None)
     }
 
     /**
@@ -333,9 +426,6 @@ class StartGameViewModel @Inject constructor(
      * تعیین برنده دوئل اول بازی (مشخص شدن صاحب گل)
      */
     private fun handleOpeningDuel(winnerId: Int) {
-        val currentTeam1Id = _state.value.team1.id
-        val currentTeam2Id = _state.value.team2.id
-
         _state.update { currentState ->
             currentState.copy(
                 team1 = currentState.team1.copy(
@@ -435,19 +525,6 @@ class StartGameViewModel @Inject constructor(
         // بستن دیالوگ و نمایش پیام موفقیت
         setDialog(GameDialogState.None)
         showToast("امتیاز این دور ${selectedValue} برابر شد", ToastType.SUCCESS)
-    }
-
-    private fun disableCard(cardId: Int) {
-        updateTeamsStateAndRepo { t1, t2 ->
-            // کارتی که انتخاب شده رو پیدا و غیرفعال میکنیم (مثلا از تیم مقابل)
-            // اینجا منطق ساده شده: فقط چک میکنیم تو کدوم تیمه و حذفش میکنیم
-            // در واقعیت باید کارت رو disable=true کنی
-
-            // فرض: مدل کارت خاصیت disable داره یا حذفش میکنیم
-            // پیاده‌سازی دقیق بستگی به مدل GameCardModel شما داره
-            Pair(t1, t2)
-        }
-        setDialog(GameDialogState.None)
     }
 
     private fun showToast(msg: String, type: ToastType) {

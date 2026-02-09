@@ -13,8 +13,8 @@ sealed interface StartGameIntent {
     data object OnDismissDialog : StartGameIntent
     data object OnExitConfirmed : StartGameIntent
     data object OnRepeatGame : StartGameIntent
-    data class OnBurnCard(val cardId: Int) : StartGameIntent
-
+//    data class OnBurnCard(val cardId: Int) : StartGameIntent
+    data class OpenCards(val teamId: Int) : StartGameIntent
     // لاجیک بازی
     data class OnOpeningDuelWinner(val teamId: Int) : StartGameIntent
     data class OnRoundResult(val outcome: RoundOutcome) : StartGameIntent // null = پوچ/مساوی
@@ -26,19 +26,18 @@ sealed interface StartGameIntent {
     data class OnCardSelectedInDialog(val cardId: Int) : StartGameIntent
 
     // ✅ کلیک روی دکمه تایید نهایی
-    data object OnConfirmCardUsage : StartGameIntent
+    data class OnConfirmCardUsage (val cardId:Int, val teamId: Int): StartGameIntent
 
     // آیتم‌ها
     data object OnEmptyHandClicked : StartGameIntent
     data object OnCardsItemClicked : StartGameIntent
-    data class OnCardSelected(val cardId: Int) : StartGameIntent
+//    data class OnCardSelected(val cardId: Int) : StartGameIntent
     data object OnCubeItemClicked : StartGameIntent
     data class OnCubeNumberSelected(val number: Int) : StartGameIntent
     data object OnCubeConfirmed : StartGameIntent
 }
 
 data class StartGameState(
-    // وضعیت تیم‌ها (امتیاز، نوبت، کارت‌ها و...)
     val team1: TeamModel = TeamModel(id = 0, name = "تیم اول"),
     val team2: TeamModel = TeamModel(id = 1, name = "تیم دوم"),
     val selectedCardId: Int? = null,
@@ -49,7 +48,7 @@ data class StartGameState(
     val starterTeamId: Int = 0,
     val activeDialog: GameDialogState = GameDialogState.OpeningDuel, // پیش‌فرض: دوئل اول بازی
     val emptyHandCount: Int = 3,
-
+    val hasUsedCardInCurrentRound: Boolean = false,
     // پیغام‌ها (Toast)
     val toastMessage: String? = null,
     val toastType: ToastType = ToastType.INFO,
@@ -66,9 +65,12 @@ enum class ToastType {
 }
 
 enum class RoundOutcome {
-    TECHNICAL_WIN, // گزینه اول (کاپ): برد ۲ امتیازی (یا با مکعب)
-    SIMPLE_WIN,    // گزینه دوم (تیک): برد ساده (حفظ گل)
-    LOSS           // گزینه سوم (ضربدر): باخت (از دست دادن گل و امتیاز دادن به حریف)
+    TAK_ZARB,
+    TOOK_GOAL,
+    DID_NOT_TAKE
+//    TECHNICAL_WIN, // گزینه اول (کاپ): برد ۲ امتیازی (یا با مکعب)
+//    SIMPLE_WIN,    // گزینه دوم (تیک): برد ساده (حفظ گل)
+//    LOSS           // گزینه سوم (ضربدر): باخت (از دست دادن گل و امتیاز دادن به حریف)
 }
 
 enum class DuelResult {

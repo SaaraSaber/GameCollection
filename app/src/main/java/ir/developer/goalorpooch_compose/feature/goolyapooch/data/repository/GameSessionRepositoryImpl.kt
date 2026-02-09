@@ -1,5 +1,6 @@
 package ir.developer.goalorpooch_compose.feature.goolyapooch.data.repository
 
+import android.util.Log
 import ir.developer.goalorpooch_compose.R
 import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.models.GameCardModel
 import ir.developer.goalorpooch_compose.feature.goolyapooch.domain.models.TeamModel
@@ -107,5 +108,6 @@ class GameSessionRepositoryImpl @Inject constructor() : GameSessionRepository {
 
     override fun updateTeam(team: TeamModel) {
         if (team.id == 0) team1 = team else team2 = team
+        Log.d("MY_DEBUG", "Repo: Updated [${team.name}] (ID: ${team.id}). Cards: ${team.cards.size}")
     }
 }

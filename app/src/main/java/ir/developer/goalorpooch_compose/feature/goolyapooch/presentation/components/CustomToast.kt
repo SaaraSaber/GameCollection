@@ -32,7 +32,7 @@ import ir.developer.goalorpooch_compose.core.theme.FontPeydaMedium
 import ir.developer.goalorpooch_compose.core.theme.paddingRound
 import ir.developer.goalorpooch_compose.core.theme.paddingRoundMini
 import ir.developer.goalorpooch_compose.core.theme.paddingTop
-import ir.developer.goalorpooch_compose.core.theme.paddingTopLarge
+import ir.developer.goalorpooch_compose.core.theme.paddingTopMedium
 import ir.developer.goalorpooch_compose.core.theme.sizeIcon
 import ir.developer.goalorpooch_compose.core.theme.toastSize
 import ir.kaaveh.sdpcompose.sdp
@@ -51,7 +51,7 @@ fun CustomToast(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = paddingTopLarge()), // فاصله از بالای صفحه
+            .padding(top = paddingTopMedium()), // فاصله از بالای صفحه
         contentAlignment = Alignment.TopCenter // قرارگیری در بالای صفحه
     ) {
         AnimatedVisibility(visible = isVisible, enter = fadeIn(), exit = fadeOut()) {
@@ -83,7 +83,7 @@ fun CustomToast(
                         )
                         Text(
                             text = message,
-                            color = Color.Black,
+                            color = Color.White,
                             fontSize = toastSize(),
                             fontFamily = FontPeydaMedium,
                             maxLines = 1,

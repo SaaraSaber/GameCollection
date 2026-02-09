@@ -2,6 +2,7 @@ package ir.developer.goalorpooch_compose.feature.goolyapooch.presentation.screen
 
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -253,7 +254,7 @@ fun StartGameScreen(
                         if (hasGoalTeamId != -1) {
                             TeamInfoSection(
                                 infoTeam = if (hasGoalTeamId == 0) state.team1 else state.team2,
-                                oppositeTeamCardsCount = if (hasGoalTeamId == 0) state.team2.cards.size else state.team1.cards.size,
+                                oppositeTeamCardsCount = if (hasGoalTeamId == 0) state.team1.cards.count { !it.isUsed } else state.team2.cards.count { !it.isUsed },
                                 enableShahGoal = state.isShahGoalMode,
                                 emptyHandCount = state.emptyHandCount,
                                 onIntent = { intent -> viewModel.handleIntent(intent) }
@@ -276,19 +277,13 @@ fun StartGameScreen(
                     ) {
                         when (val dialog = state.activeDialog) {
                             is GameDialogState.Cards -> {
-                                val hasGoalTeamId = if (state.team1.hasGoal) 0 else 1
-
-                                // ۲. انتخاب تیم "هدف" (تیمی که کارت‌هاش نمایش داده میشه)
+                                val targetTeamId = if (state.team1.hasGoal) 0 else 1
                                 val targetTeam =
-                                    if (hasGoalTeamId == 0) state.team2 else state.team1
-
-                                // ۳. فیلتر کردن کارت‌های غیرفعال (اگر منطق disable دارید)
-                                // نکته: در مدل جدید ما کارت‌ها رو کلا از لیست حذف میکنیم، پس همون لیست cards کافیه
-                                val cardsToShow = targetTeam.cards
-
+                                    if (state.team1.id == targetTeamId) state.team1 else state.team2
+                                val cardsToShow = targetTeam.cards.filter { !it.isUsed }
                                 BottomSheetCards(
                                     availableCards = cardsToShow,
-                                    isTargetTeamOne = (targetTeam.id == 0), // آیا کارت‌های تیم ۱ رو نشون میدیم؟
+                                    targetTeamId = targetTeam.id,
                                     onDismiss = {
                                         viewModel.handleIntent(StartGameIntent.OnDismissDialog)
                                     },
@@ -296,16 +291,14 @@ fun StartGameScreen(
                                         scope.launch {
                                             sheetState.hide()
                                             viewModel.handleIntent(
-                                                StartGameIntent.OnCardSelected(
-                                                    cardId
-                                                )
+                                                StartGameIntent.OnCardSelectedInDialog(cardId)
                                             )
+
                                             viewModel.handleIntent(
-                                                StartGameIntent.OnCardSelectedInDialog(
-                                                    cardId
+                                                StartGameIntent.OnConfirmCardUsage(
+                                                    cardId = cardId, teamId = targetTeam.id
                                                 )
                                             )
-                                            viewModel.handleIntent(StartGameIntent.OnConfirmCardUsage)
                                         }
                                     }
                                 )
@@ -528,6 +521,7 @@ fun TeamInfoSection(
             label = stringResource(R.string.cards),
             onClickItem = {
                 onIntent(StartGameIntent.OnCardsItemClicked)
+//                onIntent(StartGameIntent.OpenCards(targetTeamId))
             }
         )
         // تعداد مکعب

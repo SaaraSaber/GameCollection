@@ -77,7 +77,7 @@ fun BottomSheetOpeningDuel(
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
             modifier = modifier
-                .padding( paddingRound())
+                .padding(paddingRound())
                 .fillMaxWidth()
         ) {
             Row(
@@ -454,11 +454,11 @@ fun BottomSheetResultOfThisRound(
     onResultClicked: (RoundOutcome) -> Unit
 ) {
     val technicalWinText =
-        if (isTeamOneHavingGoal) R.string.first_team_scored_a_single_goal else R.string.second_team_scored_a_single_goal
+        if (!isTeamOneHavingGoal) R.string.first_team_scored_a_single_goal else R.string.second_team_scored_a_single_goal
     val simpleWinText =
-        if (isTeamOneHavingGoal) R.string.first_team_scored else R.string.second_team_scored
+        if (!isTeamOneHavingGoal) R.string.first_team_scored else R.string.second_team_scored
     val lossText =
-        if (isTeamOneHavingGoal) R.string.first_team_did_not_score else R.string.second_team_did_not_score
+        if (!isTeamOneHavingGoal) R.string.first_team_did_not_score else R.string.second_team_did_not_score
 
     CompositionLocalProvider(
         LocalLayoutDirection provides LayoutDirection.Rtl
@@ -493,7 +493,7 @@ fun BottomSheetResultOfThisRound(
                 modifier = modifier,
                 icon = R.drawable.cup,
                 text = stringResource(technicalWinText),
-                onClick = { onResultClicked(RoundOutcome.TECHNICAL_WIN) }
+                onClick = { onResultClicked(RoundOutcome.TAK_ZARB) }
             )
 
 //            Spacer(modifier = Modifier.height(12.sdp))
@@ -503,7 +503,7 @@ fun BottomSheetResultOfThisRound(
                 modifier = modifier,
                 icon = R.drawable.tick,
                 text = stringResource(simpleWinText),
-                onClick = { onResultClicked(RoundOutcome.SIMPLE_WIN) }
+                onClick = { onResultClicked(RoundOutcome.TOOK_GOAL) }
             )
 
 //            Spacer(modifier = Modifier.height(12.sdp))
@@ -513,7 +513,7 @@ fun BottomSheetResultOfThisRound(
                 modifier = modifier,
                 icon = R.drawable.square_cross,
                 text = stringResource(lossText),
-                onClick = { onResultClicked(RoundOutcome.LOSS) }
+                onClick = { onResultClicked(RoundOutcome.DID_NOT_TAKE) }
             )
 
 //            Spacer(modifier = Modifier.height(16.sdp))
@@ -525,14 +525,14 @@ fun BottomSheetResultOfThisRound(
 fun BottomSheetCards(
     modifier: Modifier = Modifier,
     availableCards: List<GameCardModel>,
-    isTargetTeamOne: Boolean,
+    targetTeamId: Int,
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
 ) {
     var selectedCardId by remember { mutableStateOf<Int?>(null) }
-    val teamImage = if (isTargetTeamOne) R.drawable.pic_team_one else R.drawable.pic_team_two
+    val teamImage = if (targetTeamId == 0) R.drawable.pic_team_one else R.drawable.pic_team_two
     val descriptionText =
-        if (isTargetTeamOne) R.string.description_choose_card_team_one else R.string.description_choose_card_team_two
+        if (targetTeamId == 0) R.string.description_choose_card_team_one else R.string.description_choose_card_team_two
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
