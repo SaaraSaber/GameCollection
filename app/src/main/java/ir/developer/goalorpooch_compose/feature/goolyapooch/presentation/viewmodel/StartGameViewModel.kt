@@ -269,51 +269,6 @@ class StartGameViewModel @Inject constructor(
      * نتیجه هر دور بازی (عادی)
      * @param winnerTeamId: تیمی که امتیاز گرفته (null یعنی پوچ/مساوی)
      */
-//    private fun handleRoundResult(outcome: RoundOutcome) {
-//        updateTeamsStateAndRepo { t1, t2 ->
-//
-//            val isT1Holder = t1.hasGoal
-//            val holder = if (isT1Holder) t1 else t2
-//            val opponent = if (isT1Holder) t2 else t1
-//            var newHolder = holder
-//            var newOpponent = opponent
-//
-//            when (outcome) {
-//                RoundOutcome.TAK_ZARB -> {
-//                    newOpponent = opponent.copy(
-//                        score = opponent.score + 2,
-//                        hasGoal = true
-//                    )
-//                    newHolder = holder.copy(hasGoal = false)
-//                }
-//
-//                RoundOutcome.TOOK_GOAL -> {
-//                    newOpponent = opponent.copy(hasGoal = true)
-//                    newHolder = holder.copy(hasGoal = false)
-//                }
-//
-//                RoundOutcome.DID_NOT_TAKE -> {
-//                    newHolder = holder.copy(score = holder.score + 1)
-//                }
-//            }
-//
-//            if (isT1Holder) {
-//                Pair(newHolder, newOpponent)
-//            } else {
-//                Pair(newOpponent, newHolder)
-//            }
-//        }
-//
-//        _state.update {
-//            it.copy(
-//                activeDialog = GameDialogState.None,
-//                timerButtonTextRes = R.string.start_time,
-//                timerButtonIconRes = R.drawable.time,
-//                hasUsedCardInCurrentRound = false,
-//                emptyHandCount = 3
-//            )
-//        }
-//    }
     private fun handleRoundResult(outcome: RoundOutcome) {
         _state.update { currentState ->
             // ۱. گرفتن وضعیت فعلی تیم‌ها
@@ -379,8 +334,6 @@ class StartGameViewModel @Inject constructor(
             currentState.copy(
                 team1 = finalTeam1,
                 team2 = finalTeam2,
-
-                // ریست کردن دیالوگ و تنظیمات دور بعد
                 activeDialog = GameDialogState.None,
                 timerButtonTextRes = R.string.start_time,
                 hasUsedCardInCurrentRound = false, // 🔓 اجازه استفاده از کارت برای دور جدید

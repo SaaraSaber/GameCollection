@@ -596,7 +596,7 @@ fun BottomSheetCards(
 
             LazyColumn(modifier = modifier.weight(1f)) {
                 items(availableCards) { itemCard ->
-                    val isSelected = selectedCardId == itemCard.id
+//                    val isSelected = selectedCardId == itemCard.id
                     ItemCard(
                         card = itemCard,
                         alpha = if (selectedCardId == null || selectedCardId == itemCard.id) 1f else .5f,
